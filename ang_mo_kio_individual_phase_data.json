@@ -1,0 +1,128 @@
+{
+  "anderson": {
+    "name": "Anderson",
+    "total_vacancy": 210,
+    "individual_phases": {
+      "phase_1": 98,
+      "phase_2a": 38,
+      "phase_2b": 18,
+      "phase_2c": 60,
+      "phase_2c_supp": 0
+    },
+    "cumulative_phases": {
+      "phase_1": 98,
+      "phase_2a": 136,
+      "phase_2b": 154,
+      "phase_2c": 214,
+      "phase_2c_supp": 214
+    }
+  },
+  "ang_mo_kio": {
+    "name": "Ang Mo Kio",
+    "total_vacancy": 150,
+    "individual_phases": {
+      "phase_1": 49,
+      "phase_2a": 24,
+      "phase_2b": 0,
+      "phase_2c": 34,
+      "phase_2c_supp": 18
+    },
+    "cumulative_phases": {
+      "phase_1": 49,
+      "phase_2a": 73,
+      "phase_2b": 73,
+      "phase_2c": 107,
+      "phase_2c_supp": 125
+    }
+  },
+  "chij_st_nicholas_girls’": {
+    "name": "CHIJ St. Nicholas Girls’",
+    "total_vacancy": 210,
+    "individual_phases": {
+      "phase_1": 74,
+      "phase_2a": 76,
+      "phase_2b": 20,
+      "phase_2c": 40,
+      "phase_2c_supp": 0
+    },
+    "cumulative_phases": {
+      "phase_1": 74,
+      "phase_2a": 150,
+      "phase_2b": 170,
+      "phase_2c": 210,
+      "phase_2c_supp": 210
+    }
+  },
+  "jing_shan": {
+    "name": "Jing Shan",
+    "total_vacancy": 150,
+    "individual_phases": {
+      "phase_1": 60,
+      "phase_2a": 30,
+      "phase_2b": 0,
+      "phase_2c": 60,
+      "phase_2c_supp": 0
+    },
+    "cumulative_phases": {
+      "phase_1": 60,
+      "phase_2a": 90,
+      "phase_2b": 90,
+      "phase_2c": 150,
+      "phase_2c_supp": 150
+    }
+  },
+  "mayflower": {
+    "name": "Mayflower",
+    "total_vacancy": 150,
+    "individual_phases": {
+      "phase_1": 40,
+      "phase_2a": 15,
+      "phase_2b": 0,
+      "phase_2c": 21,
+      "phase_2c_supp": 37
+    },
+    "cumulative_phases": {
+      "phase_1": 40,
+      "phase_2a": 55,
+      "phase_2b": 55,
+      "phase_2c": 76,
+      "phase_2c_supp": 113
+    }
+  },
+  "teck_ghee": {
+    "name": "Teck Ghee",
+    "total_vacancy": 150,
+    "individual_phases": {
+      "phase_1": 52,
+      "phase_2a": 17,
+      "phase_2b": 1,
+      "phase_2c": 73,
+      "phase_2c_supp": 7
+    },
+    "cumulative_phases": {
+      "phase_1": 52,
+      "phase_2a": 69,
+      "phase_2b": 70,
+      "phase_2c": 143,
+      "phase_2c_supp": 150
+    }
+  },
+  "townsville": {
+    "name": "Townsville",
+    "total_vacancy": 150,
+    "individual_phases": {
+      "phase_1": 29,
+      "phase_2a": 6,
+      "phase_2b": 0,
+      "phase_2c": 21,
+      "phase_2c_supp": 11
+    },
+    "cumulative_phases": {
+      "phase_1": 29,
+      "phase_2a": 35,
+      "phase_2b": 35,
+      "phase_2c": 56,
+      "phase_2c_supp": 67
+    }
+  }
+}
