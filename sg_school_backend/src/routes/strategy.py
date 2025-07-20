@@ -7,13 +7,18 @@ strategy_bp = Blueprint('strategy', __name__)
 
 # DeepSeek API configuration
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'your-deepseek-api-key-here')
 
 def call_deepseek_api(messages):
     """Call DeepSeek API for strategy generation"""
     try:
+        # Load API key dynamically to ensure it's available after .env loading
+        api_key = os.getenv('DEEPSEEK_API_KEY')
+        
+        if not api_key or api_key == 'your-deepseek-api-key-here':
+            return None
+        
         headers = {
-            'Authorization': f'Bearer {DEEPSEEK_API_KEY}',
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         }
         
@@ -21,18 +26,17 @@ def call_deepseek_api(messages):
             'model': 'deepseek-chat',
             'messages': messages,
             'temperature': 0.7,
-            'max_tokens': 2000
+            'max_tokens': 1000
         }
         
-        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=60)
         
         if response.status_code == 200:
-            return response.json()['choices'][0]['message']['content']
+            result = response.json()
+            return result['choices'][0]['message']['content']
         else:
-            print(f"DeepSeek API error: {response.status_code} - {response.text}")
             return None
     except Exception as e:
-        print(f"Error calling DeepSeek API: {e}")
         return None
 
 def generate_strategy_prompt(user_data, schools_data):
@@ -88,7 +92,16 @@ Please provide:
 6. Volunteer Opportunities: How to maximize Phase 2B eligibility
 7. Risk Mitigation: What to do if primary choices don't work out
 
-Format your response in clear sections with actionable bullet points. Be specific about Singapore's P1 registration phases and requirements.
+FORMATTING INSTRUCTIONS:
+- Use clear markdown headings (## for main sections, ### for subsections)
+- Use bullet points (-) for lists, not complex tables
+- Keep tables simple with only 2-3 columns maximum
+- For timelines, use simple bullet point format instead of complex tables
+- Make content scannable and easy to read on mobile devices
+- Bold important text sparingly
+- Use clear, concise language
+
+Be specific about Singapore's P1 registration phases and requirements.
 """
     
     return prompt

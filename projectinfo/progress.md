@@ -1,88 +1,70 @@
-# Progress Log
+# School Finder Project Progress
 
-## Latest Updates (July 2024)
+## Current Status: ✅ COMPLETED - Enhanced AI Strategy Display
 
-### 🎉 Comprehensive P1 Data Migration - COMPLETED ✅
-**Date:** July 20, 2024  
-**Status:** 100% Complete
+### Recent Achievements
 
-**Migration Achievements:**
-- ✅ **Database Migration**: Successfully migrated all 180 schools with comprehensive P1 2024 data
-- ✅ **Backend API Enhancement**: Updated School model and API endpoints to serve rich data structure
-- ✅ **Frontend Component Updates**: Enhanced SchoolResults and P1DataChart for comprehensive visualization
-- ✅ **Data Validation**: Verified end-to-end data flow with balloting details and competitiveness metrics
+#### ✅ Enhanced AI Strategy Display (July 19, 2025)
+- **Issue**: AI-generated strategies displayed raw markdown (**, ###, etc.) instead of formatted text
+- **Solution**: Added `react-markdown` package to frontend for proper markdown rendering
+- **Changes Made**:
+  - Installed `react-markdown` package in frontend
+  - Updated `StrategyView.jsx` to use `ReactMarkdown` component
+  - Added custom styling for headings, lists, bold text, etc.
+  - Built and deployed updated frontend assets
+- **Result**: AI strategies now display with beautiful formatting:
+  - **Bold text** renders properly
+  - ### Headings are styled appropriately  
+  - - Lists are properly formatted
+  - Overall much more readable user experience
 
-**New Data Features:**
-- **Balloting Information**: Detailed balloting data with conducted_for, vacancies_for_ballot, balloting_applicants
-- **Phase 1 Status Messages**: Special status indicators (e.g., "All eligible applicants were offered a place")
-- **Enhanced Competitiveness**: Calculated scores and tiers (Very High: 11, High: 16, Medium: 22, Low: 131)
-- **Comprehensive Phase Data**: vacancies, applicants, balloting status for all phases
-- **Most Competitive Phase Detection**: Automatic identification of highest competition phase
+#### ✅ DeepSeek AI Integration (July 19, 2025)
+- **Fixed API Key Loading**: Environment variables now load before module imports
+- **Resolved Timeout Issues**: Increased API timeout to 60 seconds
+- **Optimized Token Usage**: Set max_tokens to 1000 for balanced responses
+- **Result**: AI generates detailed, personalized P1 school strategies (3500+ characters)
 
-**Technical Implementation:**
-- Database populated with 180 schools from extracted MOE data
-- Backend model supports both legacy and new data formats
-- Frontend components enhanced with balloting visualization section
-- API serves comprehensive data with backward compatibility
-- 107 schools with balloting, 73 without balloting
+#### ✅ Complete P1 Data Migration (July 19, 2025)
+- **Extracted**: 180 schools with comprehensive P1 registration data
+- **Migrated**: All data to backend database with enhanced School model
+- **Updated**: Frontend components to display new data structure
+- **Fixed**: Total vacancies display issue across all components
 
-### 🎉 MOE P1 Data Extraction - COMPLETED ✅
-**Date:** July 20, 2024
-**Status:** 100% Complete
+### Technical Improvements
+- Enhanced error handling and debugging in API calls
+- Improved frontend user experience with markdown rendering
+- Optimized AI API performance and reliability
+- Better data visualization with balloting details
 
-**Achievements:**
-- ✅ Successfully extracted all 180 schools from 18 pages of MOE P1 registration data
-- ✅ Automated browser extraction using Playwright for pages 7-18
-- ✅ Manual extraction completed for pages 4-6 
-- ✅ Comprehensive JSON data structure with phases, vacancies, applicants, balloting details
-- ✅ Final consolidated file: `extracted_p1_school_data.json` (165KB, 6,279 lines)
-- ✅ Cleanup completed - removed temporary scripts and backup files
-- ✅ Final working script: `automated_extraction_final.py`
+### Current Capabilities
+- ✅ Complete P1 school data (180 schools)
+- ✅ AI-powered strategy generation via DeepSeek API
+- ✅ Beautiful, formatted strategy display
+- ✅ Comprehensive balloting and competitiveness analysis
+- ✅ Distance-based school recommendations
+- ✅ Phase-by-phase registration guidance
 
-**Technical Accomplishments:**
-- Fixed Playwright browser automation issues
-- Resolved Page.evaluate() timeout parameter compatibility
-- Implemented robust HTML parsing with BeautifulSoup
-- Created modular error handling and progress tracking
-- Achieved 100% data extraction success rate
+### Next Steps
+- No pending issues - system fully operational
+- Ready for user testing and feedback
+- Consider adding more AI features (school matching, timeline planning)
 
-**Data Quality:**
-- All 180 primary schools captured
-- Complete phase information (1, 2A, 2B, 2C, 2C Supplementary)
-- Detailed balloting data including special cases
-- Structured JSON format ready for application integration
+## Architecture Overview
+- **Backend**: Flask API with SQLAlchemy (PostgreSQL-ready)
+- **Frontend**: React with Vite build system
+- **AI Integration**: DeepSeek API for strategy generation
+- **Data Processing**: Automated web scraping with Playwright
+- **Deployment**: Static assets served by Flask backend
 
-## Recent Achievements
+## Data Sources
+- MOE SchoolFinder website (automated extraction)
+- Singapore school registration guidelines
+- Historical P1 registration data
+- Distance calculations and geographic data
 
-### Data Extraction from UI (Latest)
-- Successfully extracted P1 school registration data from Singapore MOE website UI
-- Created structured JSON format with 20 schools and complete phase-by-phase information
-- Captured all phases: Phase 1, 2A, 2B, 2C, and 2C Supplementary
-- Included balloting details, vacancy counts, applicant numbers, and special criteria
-- File: `extracted_p1_school_data.json`
-
-### School Finder Application
-- ✅ **Backend Development** - Flask API with SQLite database
-- ✅ **Frontend Development** - React.js with modern UI components
-- ✅ **Data Integration** - P1 registration data processing and storage
-- ✅ **Feature Implementation** - School comparison, strategy analysis, location search
-- ✅ **Chart Visualization** - P1 data visualization components
-
-## Current Status
-- **Backend**: Fully functional with comprehensive API endpoints
-- **Frontend**: Complete with interactive components and data visualization
-- **Database**: Contains processed school data and P1 registration information
-- **Data Processing**: Enhanced with latest UI-extracted structured data
-
-## Next Possible Steps
-1. Integrate new extracted JSON data into existing database
-2. Enhance visualization with more detailed phase-by-phase analysis
-3. Add balloting probability calculations based on historical data
-4. Implement advanced filtering by balloting status and phase outcomes
-
-## Files and Structure
-- **Backend**: `sg_school_backend/` - Flask application with API routes
-- **Frontend**: `sg-school-frontend/` - React application with modern UI
-- **Data**: Various CSV/JSON files with school and P1 registration data
-- **Documentation**: Comprehensive docs for architecture and deployment
-- **Latest Extract**: `extracted_p1_school_data.json` - Structured UI data extraction 
+## Key Features
+1. **School Search & Filtering**: Location-based school discovery
+2. **Comprehensive School Data**: Vacancies, balloting history, competitiveness
+3. **AI Strategy Generation**: Personalized P1 registration strategies
+4. **Data Visualization**: Charts and insights for school comparison
+5. **Export Capabilities**: Download strategies as PDF/text files 

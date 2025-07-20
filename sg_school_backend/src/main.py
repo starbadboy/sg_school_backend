@@ -3,6 +3,10 @@ import sys
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# Load environment variables from .env file BEFORE importing modules
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, send_from_directory, Response
 from flask_cors import CORS
 import mimetypes
