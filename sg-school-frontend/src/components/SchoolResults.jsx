@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MapPin, Phone, Mail, Globe, Users, TrendingUp, AlertTriangle, CheckCircle, Brain, Filter, SortAsc } from 'lucide-react'
+import { MapPin, Phone, Mail, Globe, Users, TrendingUp, AlertTriangle, CheckCircle, Brain, Filter, SortAsc, Star, Trophy, Shield, Zap } from 'lucide-react'
 import P1DataChart from './P1DataChart'
 
 const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect, onGenerateStrategy }) => {
@@ -26,10 +26,10 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
   const getCompetitivenessColor = (level) => {
     switch (level) {
       case 'very-high': return 'text-red-600 bg-red-50 border-red-200'
-      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200'
+      case 'high': return 'text-amber-600 bg-amber-50 border-amber-200'
       case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-      case 'low': return 'text-green-600 bg-green-50 border-green-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'low': return 'text-emerald-600 bg-emerald-50 border-emerald-200'
+      default: return 'text-slate-600 bg-slate-50 border-slate-200'
     }
   }
 
@@ -81,64 +81,76 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
   const filteredSchools = getSortedAndFilteredSchools()
 
   return (
-    <div className="space-y-6">
-      {/* Results Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {schools.length} Schools Found
-          </h2>
-          <p className="text-gray-600">
-            Near {userLocation?.address} • Within {results.radius || 2}km radius
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          {/* Sort */}
-          <div className="flex items-center space-x-2">
-            <SortAsc className="h-4 w-4 text-gray-500" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1"
-            >
-              <option value="distance">Distance</option>
-              <option value="name">Name</option>
-              <option value="competitiveness">Competitiveness</option>
-            </select>
+    <div className="space-y-8 animate-fade-in">
+      {/* Enhanced Results Header */}
+      <div className="card-gradient border-2 border-blue-200">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-2xl flex items-center justify-center">
+                <Trophy className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-slate-900">
+                  {schools.length} School{schools.length !== 1 ? 's' : ''} Found
+                </h2>
+                <p className="text-lg text-slate-600">
+                  Near {userLocation?.address} • Within {results.radius || 2}km radius
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Filter */}
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <select
-              value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1"
-            >
-              <option value="all">All Schools</option>
-              <option value="low">Less Competitive</option>
-              <option value="medium">Moderately Competitive</option>
-              <option value="high">Highly Competitive</option>
-              <option value="very-high">Very Competitive</option>
-            </select>
-          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+            {/* Sort Controls */}
+            <div className="flex items-center space-x-3">
+              <SortAsc className="h-5 w-5 text-slate-500" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="input-field py-2 px-3 text-sm min-w-0"
+              >
+                <option value="distance">Sort by Distance</option>
+                <option value="name">Sort by Name</option>
+                <option value="competitiveness">Sort by Competition</option>
+              </select>
+            </div>
 
-          {/* Generate Strategy Button */}
-          {selectedSchools.length > 0 && (
-            <button
-              onClick={onGenerateStrategy}
-              className="btn-primary flex items-center space-x-2"
-            >
-              <Brain className="h-4 w-4" />
-              <span>Generate AI Strategy</span>
-            </button>
-          )}
+            {/* Filter Controls */}
+            <div className="flex items-center space-x-3">
+              <Filter className="h-5 w-5 text-slate-500" />
+              <select
+                value={filterBy}
+                onChange={(e) => setFilterBy(e.target.value)}
+                className="input-field py-2 px-3 text-sm min-w-0"
+              >
+                <option value="all">All Schools</option>
+                <option value="low">Less Competitive</option>
+                <option value="medium">Moderately Competitive</option>
+                <option value="high">Highly Competitive</option>
+                <option value="very-high">Very Competitive</option>
+              </select>
+            </div>
+
+            {/* Generate Strategy Button */}
+            {selectedSchools.length > 0 && (
+              <button
+                onClick={onGenerateStrategy}
+                className="btn-primary flex items-center space-x-2 shadow-lg"
+              >
+                <Brain className="h-4 w-4" />
+                <span>Generate AI Strategy</span>
+                <div className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                  {selectedSchools.length}
+                </div>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* School Cards */}
-      <div className="grid gap-6">
+      <div className="space-y-6">
         {filteredSchools.map((school, index) => (
           <SchoolCard
             key={school.name}
@@ -150,11 +162,18 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
         ))}
       </div>
 
+      {/* Empty State */}
       {filteredSchools.length === 0 && (
-        <div className="text-center py-12">
-          <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No schools match your filters</h3>
-          <p className="text-gray-600">Try adjusting your filter criteria</p>
+        <div className="card-elevated text-center py-16">
+          <AlertTriangle className="h-16 w-16 text-slate-400 mx-auto mb-6" />
+          <h3 className="text-2xl font-bold text-slate-900 mb-4">No schools match your filters</h3>
+          <p className="text-lg text-slate-600 mb-8">Try adjusting your filter criteria to see more results</p>
+          <button
+            onClick={() => setFilterBy('all')}
+            className="btn-primary"
+          >
+            Show All Schools
+          </button>
         </div>
       )}
     </div>
@@ -170,117 +189,169 @@ const SchoolCard = ({ school, isSelected, onSelect, rank }) => {
 
   const p1Data = school.p1_data
 
+  const getSuccessRate = () => {
+    if (!p1Data?.phases?.phase_2c) return 0
+    const phase2c = p1Data.phases.phase_2c
+    if (!phase2c.applied || phase2c.applied === 0) return 100
+    return Math.round((phase2c.taken / phase2c.applied) * 100)
+  }
+
+  const getDistancePriority = () => {
+    if (school.distance <= 1) return { text: 'Priority 1', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' }
+    if (school.distance <= 2) return { text: 'Priority 2', color: 'text-blue-600 bg-blue-50 border-blue-200' }
+    return { text: 'Priority 3+', color: 'text-purple-600 bg-purple-50 border-purple-200' }
+  }
+
+  const distancePriority = getDistancePriority()
+
   return (
-    <div className={`card-hover border-l-4 ${isSelected ? 'border-l-primary-500 bg-primary-50' : 'border-l-gray-200'}`}>
-      <div className="flex items-start justify-between">
-        {/* School Info */}
-        <div className="flex-1">
-          <div className="flex items-start space-x-4">
+    <div className={`card-hover border-l-4 transition-all duration-300 animate-slide-up group ${
+      isSelected 
+        ? 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-transparent shadow-lg' 
+        : 'border-l-slate-200 hover:border-l-blue-400'
+    }`}>
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4 flex-1">
+            {/* Rank Badge */}
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <span className="text-primary-600 font-bold text-lg">#{rank}</span>
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                isSelected 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg' 
+                  : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+              }`}>
+                <span className="text-xl font-bold">#{rank}</span>
               </div>
             </div>
 
+            {/* School Info */}
             <div className="flex-1 space-y-3">
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{school.name}</h3>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{school.distance}km away</span>
-                    </div>
-                    <div className={`px-2 py-1 rounded-full text-xs border ${competitivenessColor}`}>
-                      {competitivenessText}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={onSelect}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isSelected 
-                      ? 'bg-primary-600 text-white' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <CheckCircle className="h-5 w-5" />
-                </button>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {school.name}
+                </h3>
+                <p className="text-slate-600 mt-1">{school.address}</p>
               </div>
 
-              {/* Contact Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <Phone className="h-4 w-4" />
-                  <span>{school.phone}</span>
+              {/* Key Metrics */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 rounded-xl">
+                  <MapPin className="h-4 w-4 text-slate-500" />
+                  <span className="font-semibold text-slate-700">{school.distance}km away</span>
                 </div>
-                {school.email && (
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Mail className="h-4 w-4" />
-                    <span className="truncate">{school.email}</span>
+                
+                <div className={`px-3 py-1.5 rounded-xl border text-sm font-semibold ${distancePriority.color}`}>
+                  {distancePriority.text}
+                </div>
+                
+                <div className={`px-3 py-1.5 rounded-xl border text-sm font-semibold ${competitivenessColor}`}>
+                  {competitivenessText}
+                </div>
+
+                {p1Data?.balloted && (
+                  <div className="flex items-center space-x-1 px-3 py-1.5 bg-red-50 border border-red-200 rounded-xl">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-semibold text-red-700">Balloted</span>
                   </div>
                 )}
-                {school.website && (
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Globe className="h-4 w-4" />
-                    <span className="truncate">Website</span>
-                  </div>
-                )}
-              </div>
-
-              {/* P1 Quick Stats */}
-              {p1Data && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <div className="text-gray-600">Total Vacancy</div>
-                      <div className="font-semibold text-gray-900">{p1Data.total_vacancy}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Phase 2C Applied</div>
-                      <div className="font-semibold text-gray-900">{p1Data.phases?.phase_2c?.applied || 0}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Success Rate</div>
-                      <div className="font-semibold text-gray-900">
-                        {p1Data.phases?.phase_2c ? 
-                          `${Math.round((p1Data.phases.phase_2c.taken / p1Data.phases.phase_2c.applied) * 100)}%` : 
-                          'N/A'
-                        }
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Balloted</div>
-                      <div className={`font-semibold ${p1Data.balloted ? 'text-red-600' : 'text-green-600'}`}>
-                        {p1Data.balloted ? 'Yes' : 'No'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setShowDetails(!showDetails)}
-                  className="btn-outline text-sm"
-                >
-                  {showDetails ? 'Hide Details' : 'View P1 Data'}
-                </button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Detailed P1 Data */}
-      {showDetails && p1Data && (
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <P1DataChart school={school} />
+          {/* Selection Button */}
+          <button
+            onClick={onSelect}
+            className={`p-4 rounded-2xl transition-all duration-300 ${
+              isSelected 
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
+                : 'bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-600 hover:shadow-md'
+            }`}
+          >
+            <CheckCircle className="h-6 w-6" />
+          </button>
         </div>
-      )}
+
+        {/* Contact Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {school.phone && (
+            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <Phone className="h-5 w-5 text-slate-500" />
+              <span className="text-slate-700 font-medium">{school.phone}</span>
+            </div>
+          )}
+          {school.email && (
+            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <Mail className="h-5 w-5 text-slate-500" />
+              <span className="text-slate-700 font-medium truncate">{school.email}</span>
+            </div>
+          )}
+          {school.website && (
+            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <Globe className="h-5 w-5 text-slate-500" />
+              <span className="text-slate-700 font-medium">Visit Website</span>
+            </div>
+          )}
+        </div>
+
+        {/* P1 Statistics */}
+        {p1Data && (
+          <div className="card-gradient border border-slate-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center space-y-2">
+                <div className="text-2xl font-bold text-slate-900">{p1Data.total_vacancy}</div>
+                <div className="text-sm text-slate-600">Total Vacancy</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className="text-2xl font-bold text-slate-900">{p1Data.phases?.phase_2c?.applied || 0}</div>
+                <div className="text-sm text-slate-600">Phase 2C Applied</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className="text-2xl font-bold text-emerald-600">{getSuccessRate()}%</div>
+                <div className="text-sm text-slate-600">Success Rate</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className={`text-2xl font-bold ${p1Data.balloted ? 'text-red-600' : 'text-emerald-600'}`}>
+                  {p1Data.balloted ? 'Yes' : 'No'}
+                </div>
+                <div className="text-sm text-slate-600">Balloted</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="btn-secondary flex items-center space-x-2"
+          >
+            <TrendingUp className="h-4 w-4" />
+            <span>{showDetails ? 'Hide P1 Data' : 'View P1 Analytics'}</span>
+          </button>
+
+          {getSuccessRate() >= 80 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+              <Star className="h-4 w-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-emerald-700">Good Chances</span>
+            </div>
+          )}
+
+          {school.distance <= 1 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl">
+              <Shield className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-700">Priority Zone</span>
+            </div>
+          )}
+        </div>
+
+        {/* Detailed P1 Data */}
+        {showDetails && p1Data && (
+          <div className="mt-6 pt-6 border-t border-slate-200 animate-slide-down">
+            <P1DataChart school={school} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -306,10 +377,10 @@ const getCompetitivenessLevel = (school) => {
 const getCompetitivenessColor = (level) => {
   switch (level) {
     case 'very-high': return 'text-red-600 bg-red-50 border-red-200'
-    case 'high': return 'text-orange-600 bg-orange-50 border-orange-200'
+    case 'high': return 'text-amber-600 bg-amber-50 border-amber-200'
     case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-    case 'low': return 'text-green-600 bg-green-50 border-green-200'
-    default: return 'text-gray-600 bg-gray-50 border-gray-200'
+    case 'low': return 'text-emerald-600 bg-emerald-50 border-emerald-200'
+    default: return 'text-slate-600 bg-slate-50 border-slate-200'
   }
 }
 
