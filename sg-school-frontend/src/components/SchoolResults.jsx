@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
-import { MapPin, Phone, Mail, Globe, Users, TrendingUp, AlertTriangle, CheckCircle, Brain, Filter, SortAsc, Star, Trophy, Shield, Zap } from 'lucide-react'
+import { MapPin, Phone, Mail, Globe, Users, TrendingUp, AlertTriangle, CheckCircle, Brain, Filter, SortAsc, Star, Trophy, Shield, Zap, Map, List } from 'lucide-react'
 import P1DataChart from './P1DataChart'
+import SchoolMap from './SchoolMap'
 
 const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect, onGenerateStrategy }) => {
   const [sortBy, setSortBy] = useState('distance')
   const [filterBy, setFilterBy] = useState('all')
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState('list') // 'list' or 'map'
 
   const schools = results?.schools || []
 
@@ -112,6 +114,32 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+            {/* View Toggle */}
+            <div className="flex items-center bg-slate-100 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="h-4 w-4" />
+                <span>List</span>
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'map'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Map className="h-4 w-4" />
+                <span>Map</span>
+              </button>
+            </div>
+
             {/* Sort Controls */}
             <div className="flex items-center space-x-3">
               <SortAsc className="h-5 w-5 text-slate-500" />
@@ -159,32 +187,45 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
         </div>
       </div>
 
-      {/* School Cards */}
-      <div className="space-y-6">
-        {filteredSchools.map((school, index) => (
-          <SchoolCard
-            key={school.name}
-            school={school}
-            isSelected={isSchoolSelected(school)}
-            onSelect={() => onSchoolSelect(school)}
-            rank={index + 1}
-          />
-        ))}
-      </div>
+      {/* Content Area - List or Map View */}
+      {viewMode === 'list' ? (
+        <>
+          {/* School Cards */}
+          <div className="space-y-6">
+            {filteredSchools.map((school, index) => (
+              <SchoolCard
+                key={school.name}
+                school={school}
+                isSelected={isSchoolSelected(school)}
+                onSelect={() => onSchoolSelect(school)}
+                rank={index + 1}
+              />
+            ))}
+          </div>
 
-      {/* Empty State */}
-      {filteredSchools.length === 0 && (
-        <div className="card-elevated text-center py-16">
-          <AlertTriangle className="h-16 w-16 text-slate-400 mx-auto mb-6" />
-          <h3 className="text-2xl font-bold text-slate-900 mb-4">No schools match your filters</h3>
-          <p className="text-lg text-slate-600 mb-8">Try adjusting your filter criteria to see more results</p>
-          <button
-            onClick={() => setFilterBy('all')}
-            className="btn-primary"
-          >
-            Show All Schools
-          </button>
-        </div>
+          {/* Empty State */}
+          {filteredSchools.length === 0 && (
+            <div className="card-elevated text-center py-16">
+              <AlertTriangle className="h-16 w-16 text-slate-400 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">No schools match your filters</h3>
+              <p className="text-lg text-slate-600 mb-8">Try adjusting your filter criteria to see more results</p>
+              <button
+                onClick={() => setFilterBy('all')}
+                className="btn-primary"
+              >
+                Show All Schools
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Map View */
+        <SchoolMap
+          schools={filteredSchools}
+          userLocation={userLocation}
+          selectedSchools={selectedSchools}
+          onSchoolSelect={onSchoolSelect}
+        />
       )}
     </div>
   )
