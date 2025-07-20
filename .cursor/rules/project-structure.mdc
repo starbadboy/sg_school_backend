@@ -1,0 +1,38 @@
+---
+alwaysApply: true
+description: "Project structure guide for the Singapore school finder application"
+---
+
+# Project Structure Guide
+
+## Main Components
+
+### Backend - Flask API (`sg_school_backend/`)
+- **Entry Point**: [main.py](mdc:sg_school_backend/src/main.py) - Flask application server
+- **Models**: [user.py](mdc:sg_school_backend/src/models/user.py) - Database models
+- **Routes**: 
+  - [schools.py](mdc:sg_school_backend/src/routes/schools.py) - School data endpoints
+  - [strategy.py](mdc:sg_school_backend/src/routes/strategy.py) - School selection strategy endpoints
+  - [user.py](mdc:sg_school_backend/src/routes/user.py) - User management endpoints
+- **Database**: [app.db](mdc:sg_school_backend/src/database/app.db) - SQLite database
+- **Static Files**: Built frontend assets served from `sg_school_backend/src/static/`
+
+### Frontend (`sg-school-frontend/`)
+- Built frontend application (assets compiled to backend static folder)
+- Configuration: [components.json](mdc:sg-school-frontend/components.json)
+
+### Data Files
+- [sgschooling_data_structure.md](mdc:sgschooling_data_structure.md) - Data structure documentation
+- [ang_mo_kio_school_data.csv](mdc:ang_mo_kio_school_data.csv) - Sample school data
+- [extract_sgschooling_data.py](mdc:extract_sgschooling_data.py) - Data extraction script
+
+### Documentation
+- [project_summary.md](mdc:project_summary.md) - Overall project overview
+- [web_app_architecture.md](mdc:web_app_architecture.md) - Architecture documentation
+- [user_documentation.md](mdc:user_documentation.md) - User guide
+- [deployment_notes.md](mdc:deployment_notes.md) - Deployment instructions
+
+## Project Management
+- Track progress in `/projectinfo/progress.md` (create folder if not exists)
+- Document key decisions and changes in projectinfo folder
+- Update [todo.md](mdc:todo.md) for task tracking

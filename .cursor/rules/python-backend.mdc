@@ -1,0 +1,38 @@
+---
+globs: sg_school_backend/**/*.py
+description: "Python Flask backend development standards for school finder API"
+---
+
+# Python Backend Standards
+
+## Flask Application Structure
+- Follow the existing modular structure with separate route files
+- Import routes in [main.py](mdc:sg_school_backend/src/main.py) to register blueprints
+- Use blueprints for organizing related endpoints
+
+## Database Operations
+- Use SQLAlchemy models defined in [models/user.py](mdc:sg_school_backend/src/models/user.py)
+- Implement proper database connection handling and session management
+- Add appropriate database migrations when schema changes are needed
+
+## API Development
+- Follow RESTful conventions for new endpoints
+- Implement proper HTTP status codes and error responses
+- Add input validation for all API endpoints
+- Use consistent JSON response formats
+
+## School Data Handling
+- Reference [sgschooling_data_structure.md](mdc:sgschooling_data_structure.md) for data structure
+- Use existing data extraction patterns from [extract_sgschooling_data.py](mdc:extract_sgschooling_data.py)
+- Ensure school data endpoints in [routes/schools.py](mdc:sg_school_backend/src/routes/schools.py) handle edge cases
+
+## Dependencies
+- Add new requirements to [requirements.txt](mdc:sg_school_backend/requirements.txt)
+- Activate virtual environment before installing packages: `source venv/bin/activate`
+- Test all imports and dependencies before committing
+
+## Error Handling
+- Implement try-catch blocks for database operations
+- Log errors appropriately for debugging
+- Return user-friendly error messages in API responses
+- Handle file I/O operations with proper exception handling

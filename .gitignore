@@ -1,0 +1,356 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+sg_school_backend/venv/
+
+# Flask
+instance/
+.webassets-cache
+*.db
+*.sqlite
+*.sqlite3
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+sg_school_backend/src/database/*.db
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.flaskenv
+
+# Node.js / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+.nx/cache/
+
+# Frontend build artifacts
+sg-school-frontend/dist/
+sg-school-frontend/build/
+sg-school-frontend/node_modules/
+sg_school_backend/src/static/assets/
+sg_school_backend/src/static/index.html
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# API Keys and Secrets
+**/api_keys.txt
+**/secrets.txt
+**/*secret*
+**/*key*
+!**/requirements.txt
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Project specific
+# Uncomment if you want to ignore certain data files
+# *.csv
+# *.json
+
+# Test files
+test_output/
+tests/output/
+
+# Documentation builds
+docs/_build/
+
+# Profiling data
+.prof
+
+# Local configuration files
+config.local.py
+settings.local.py
+
+# Scraped data cache
+scraped_data/
+cache/
+
+# Server startup scripts (keep in repo for now)
+# start_server.sh
+
+# ===============================================
+# SINGAPORE SCHOOL FINDER PROJECT SPECIFIC
+# ===============================================
+
+# Environment configuration files (potentially sensitive)
+env.txt
+environment.txt
+config.txt
+
+# System configuration files (should not be in repository)
+bash_logout.txt
+bashrc.txt
+profile.txt
+zshrc.txt
+.bashrc
+.bash_profile
+.profile
+.zshrc
+
+# Large generated data files from scraping
+*_complete_data.json
+*_extracted_data.json
+sgschooling_data_*.json
+school_data_export_*.json
+extracted_*.csv
+scraped_*.csv
+
+# Large P1 data files (keep sample data, ignore large extracts)
+p1_*_complete_data.json
+p1_extracted_*.json
+full_school_dataset_*.json
+
+# DeepSeek API related files
+deepseek_*.txt
+ai_responses_*.json
+strategy_cache/
+
+# OneMap API cache files
+onemap_cache/
+geocoding_cache/
+
+# Development testing files
+test_school_search.py
+debug_*.py
+temp_*.py
+
+# User uploaded files
+uploads/
+user_files/
+
+# Generated reports and exports
+reports/
+exports/
+downloads/
+
+# Local development overrides
+local_settings.py
+dev_config.py
+debug_config.py
+
+# Sensitive configuration
+api_config.py
+keys_config.py
+production_config.py
+
+# Browser automation files (if using Selenium/Playwright)
+browser_data/
+screenshots/
+page_dumps/
+
+# Data processing intermediates
+processing_temp/
+data_temp/
+intermediate_files/
+
+# Performance profiling
+*.prof
+profile_results/
+
+# Jupyter notebook checkpoints for data analysis
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Mac specific (additional)
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows specific (additional)
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# Linux specific (additional)
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Keep essential files (override previous patterns)
+!sample_data.csv
+!example_config.py.template
+!requirements.txt
+!package.json
+!README.md 

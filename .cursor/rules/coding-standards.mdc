@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+description: "Core coding standards and practices for the school finder project"
+---
+
+# Coding Standards
+
+## Response Format
+- Provide direct code solutions instead of high-level descriptions
+- Show only relevant code changes with minimal context
+- Split long responses into multiple messages if needed
+
+## Code Quality Standards
+- **The fewer lines of code, the better** - prioritize concise, readable solutions
+- Implement proper error handling for all functions and API calls
+- Add comments only for complex logic - avoid obvious comments
+- **Never delete existing code comments** - preserve all existing documentation
+- **Never change existing features and logic** without explicit permission
+- **Always ask if anything is unclear** before modifying existing code
+- **Never change anything not related to the mentioned requirement**
+
+## Code Consistency
+- Respect existing prettier preferences and formatting
+- Follow existing naming conventions in the codebase
+- Maintain consistent indentation and style with existing code
+- Use existing patterns and structures when adding new features
+
+## Implementation Requirements
+- **Do not stop working until the feature is fully and completely implemented**
+- Test all code changes before considering the task complete
+- Ensure all dependencies and imports are properly included
+- Make code runnable immediately without additional setup steps

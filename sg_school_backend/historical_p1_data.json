@@ -1,0 +1,298 @@
+{
+  "admiralty": {
+    "name": "Admiralty",
+    "years": {
+      "2024": {
+        "total_vacancy": 210,
+        "phases": {
+          "phase_1": {
+            "vacancy": 150,
+            "applied": 82,
+            "taken": 82
+          },
+          "phase_2a": {
+            "vacancy": 68,
+            "applied": 34,
+            "taken": 34
+          },
+          "phase_2b": {
+            "vacancy": 31,
+            "applied": 25,
+            "taken": 25
+          },
+          "phase_2c": {
+            "vacancy": 69,
+            "applied": 134,
+            "taken": 69
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  },
+  "ahmad_ibrahim": {
+    "name": "Ahmad Ibrahim",
+    "years": {
+      "2024": {
+        "total_vacancy": 220,
+        "phases": {
+          "phase_1": {
+            "vacancy": 160,
+            "applied": 48,
+            "taken": 48
+          },
+          "phase_2a": {
+            "vacancy": 112,
+            "applied": 6,
+            "taken": 6
+          },
+          "phase_2b": {
+            "vacancy": 55,
+            "applied": 0,
+            "taken": 0
+          },
+          "phase_2c": {
+            "vacancy": 167,
+            "applied": 29,
+            "taken": 29
+          },
+          "phase_2c_supp": {
+            "vacancy": 138,
+            "applied": 22,
+            "taken": 22
+          }
+        },
+        "balloted": false,
+        "year": 2024
+      }
+    }
+  },
+  "ai_tong": {
+    "name": "Ai Tong",
+    "years": {
+      "2024": {
+        "total_vacancy": 300,
+        "phases": {
+          "phase_1": {
+            "vacancy": 240,
+            "applied": 132,
+            "taken": 132
+          },
+          "phase_2a": {
+            "vacancy": 108,
+            "applied": 141,
+            "taken": 108
+          },
+          "phase_2b": {
+            "vacancy": 20,
+            "applied": 53,
+            "taken": 20
+          },
+          "phase_2c": {
+            "vacancy": 41,
+            "applied": 94,
+            "taken": 41
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  },
+  "anderson": {
+    "name": "Anderson",
+    "years": {
+      "2024": {
+        "total_vacancy": 210,
+        "phases": {
+          "phase_1": {
+            "vacancy": 150,
+            "applied": 98,
+            "taken": 98
+          },
+          "phase_2a": {
+            "vacancy": 52,
+            "applied": 38,
+            "taken": 38
+          },
+          "phase_2b": {
+            "vacancy": 25,
+            "applied": 18,
+            "taken": 18
+          },
+          "phase_2c": {
+            "vacancy": 60,
+            "applied": 64,
+            "taken": 60
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  },
+  "ang_mo_kio": {
+    "name": "Ang Mo Kio",
+    "years": {
+      "2024": {
+        "total_vacancy": 150,
+        "phases": {
+          "phase_1": {
+            "vacancy": 90,
+            "applied": 49,
+            "taken": 49
+          },
+          "phase_2a": {
+            "vacancy": 41,
+            "applied": 24,
+            "taken": 24
+          },
+          "phase_2b": {
+            "vacancy": 26,
+            "applied": 0,
+            "taken": 0
+          },
+          "phase_2c": {
+            "vacancy": 77,
+            "applied": 34,
+            "taken": 34
+          },
+          "phase_2c_supp": {
+            "vacancy": 43,
+            "applied": 18,
+            "taken": 18
+          }
+        },
+        "balloted": false,
+        "year": 2024
+      }
+    }
+  },
+  "nanyang": {
+    "name": "Nanyang",
+    "years": {
+      "2024": {
+        "total_vacancy": 360,
+        "phases": {
+          "phase_1": {
+            "vacancy": 300,
+            "applied": 182,
+            "taken": 182
+          },
+          "phase_2a": {
+            "vacancy": 118,
+            "applied": 156,
+            "taken": 118
+          },
+          "phase_2b": {
+            "vacancy": 0,
+            "applied": 9,
+            "taken": 0
+          },
+          "phase_2c": {
+            "vacancy": 60,
+            "applied": 171,
+            "taken": 60
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  },
+  "raffles_girls": {
+    "name": "Raffles Girls",
+    "years": {
+      "2024": {
+        "total_vacancy": 252,
+        "phases": {
+          "phase_1": {
+            "vacancy": 180,
+            "applied": 99,
+            "taken": 99
+          },
+          "phase_2a": {
+            "vacancy": 81,
+            "applied": 73,
+            "taken": 73
+          },
+          "phase_2b": {
+            "vacancy": 8,
+            "applied": 17,
+            "taken": 8
+          },
+          "phase_2c": {
+            "vacancy": 113,
+            "applied": 130,
+            "taken": 113
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  },
+  "tao_nan": {
+    "name": "Tao Nan",
+    "years": {
+      "2024": {
+        "total_vacancy": 360,
+        "phases": {
+          "phase_1": {
+            "vacancy": 300,
+            "applied": 119,
+            "taken": 119
+          },
+          "phase_2a": {
+            "vacancy": 181,
+            "applied": 267,
+            "taken": 181
+          },
+          "phase_2b": {
+            "vacancy": 0,
+            "applied": 31,
+            "taken": 0
+          },
+          "phase_2c": {
+            "vacancy": 60,
+            "applied": 66,
+            "taken": 60
+          },
+          "phase_2c_supp": {
+            "vacancy": 0,
+            "applied": 0,
+            "taken": 0
+          }
+        },
+        "balloted": true,
+        "year": 2024
+      }
+    }
+  }
+}

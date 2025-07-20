@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+description: "Project management and workflow standards"
+---
+
+# Workflow Management
+
+## Project Tracking
+- **Always create `/projectinfo` folder if it doesn't exist**
+- Track all progress in `/projectinfo/progress.md`
+- Document key decisions and changes in projectinfo folder
+- Update [todo.md](mdc:todo.md) for ongoing task management
+
+## Development Workflow
+1. **Before making changes**: Ask for clarification if anything is unclear
+2. **During implementation**: Follow the "fewer lines of code" principle
+3. **After implementation**: **Always ask "do you want to review the code use code review template boss?"**
+
+## Git Commit Standards
+- Follow the established commit message format
+- Include meaningful descriptions of changes
+- Reference related issues or tasks when applicable
+
+## Code Review Process
+- Always offer code review after completing implementation
+- Use the established code review template
+- Address all review feedback before considering task complete
+
+## Documentation Updates
+- Update relevant documentation files when making changes
+- Keep [project_summary.md](mdc:project_summary.md) current with major changes
+- Update [deployment_notes.md](mdc:deployment_notes.md) if deployment process changes
+
+## Communication Standards
+- Ask for permission before modifying existing features
+- Clarify requirements if they seem ambiguous
+- Provide status updates on complex implementations
+- Request feedback when multiple approaches are possible
+
+## Quality Assurance
+- Test all implemented features thoroughly
+- Ensure code runs immediately without additional setup
+- Verify all dependencies are properly included
+- Check that changes don't break existing functionality

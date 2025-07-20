@@ -1,0 +1,563 @@
+{
+  "metadata": {
+    "source": "sgschooling.com/year/2024/all",
+    "year": 2024,
+    "total_schools": 10,
+    "extraction_date": "2025-01-04",
+    "notes": "Real P1 ballot data from sgschooling.com"
+  },
+  "schools": {
+    "admiralty": {
+      "name": "Admiralty Primary School",
+      "total_vacancy": 210,
+      "phases": {
+        "phase_1": {
+          "vacancy": 150,
+          "applied": 82,
+          "taken": 82
+        },
+        "phase_2a": {
+          "vacancy": 68,
+          "applied": 34,
+          "taken": 34
+        },
+        "phase_2b": {
+          "vacancy": 31,
+          "applied": 25,
+          "taken": 25
+        },
+        "phase_2c": {
+          "vacancy": 69,
+          "applied": 134,
+          "taken": 69,
+          "ballot_notes": "SC<1109/69"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100.0,
+        "phase_2b_competitiveness": 0.0,
+        "phase_2c_success_rate": 51.5,
+        "phase_2c_competitiveness": 48.5,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "ahmad_ibrahim": {
+      "name": "Ahmad Ibrahim Primary School",
+      "total_vacancy": 220,
+      "phases": {
+        "phase_1": {
+          "vacancy": 160,
+          "applied": 48,
+          "taken": 48
+        },
+        "phase_2a": {
+          "vacancy": 112,
+          "applied": 6,
+          "taken": 6
+        },
+        "phase_2b": {
+          "vacancy": 55,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_2c": {
+          "vacancy": 167,
+          "applied": 29,
+          "taken": 29
+        },
+        "phase_2c_supp": {
+          "vacancy": 138,
+          "applied": 22,
+          "taken": 22
+        },
+        "phase_3": {
+          "vacancy": 116,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": false,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100,
+        "phase_2b_competitiveness": 0,
+        "phase_2c_success_rate": 100.0,
+        "phase_2c_competitiveness": 0.0,
+        "phase_2c_supp_success_rate": 100.0,
+        "phase_2c_supp_competitiveness": 0.0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "ai_tong": {
+      "name": "Ai Tong School",
+      "total_vacancy": 300,
+      "phases": {
+        "phase_1": {
+          "vacancy": 240,
+          "applied": 132,
+          "taken": 132
+        },
+        "phase_2a": {
+          "vacancy": 108,
+          "applied": 141,
+          "taken": 108,
+          "ballot_notes": "SC>260/27"
+        },
+        "phase_2b": {
+          "vacancy": 20,
+          "applied": 53,
+          "taken": 20,
+          "ballot_notes": "SC<146/20"
+        },
+        "phase_2c": {
+          "vacancy": 41,
+          "applied": 94,
+          "taken": 41,
+          "ballot_notes": "SC<185/41"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 76.6,
+        "phase_2a_competitiveness": 23.4,
+        "phase_2b_success_rate": 37.7,
+        "phase_2b_competitiveness": 62.3,
+        "phase_2c_success_rate": 43.6,
+        "phase_2c_competitiveness": 56.4,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "alexandra": {
+      "name": "Alexandra Primary School",
+      "total_vacancy": 200,
+      "phases": {
+        "phase_1": {
+          "vacancy": 140,
+          "applied": 75,
+          "taken": 75
+        },
+        "phase_2a": {
+          "vacancy": 65,
+          "applied": 65,
+          "taken": 65
+        },
+        "phase_2b": {
+          "vacancy": 20,
+          "applied": 3,
+          "taken": 3
+        },
+        "phase_2c": {
+          "vacancy": 58,
+          "applied": 82,
+          "taken": 58,
+          "ballot_notes": "SC<161/58"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100.0,
+        "phase_2b_competitiveness": 0.0,
+        "phase_2c_success_rate": 70.7,
+        "phase_2c_competitiveness": 29.3,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "anchor_green": {
+      "name": "Anchor Green Primary School",
+      "total_vacancy": 240,
+      "phases": {
+        "phase_1": {
+          "vacancy": 180,
+          "applied": 60,
+          "taken": 60
+        },
+        "phase_2a": {
+          "vacancy": 120,
+          "applied": 29,
+          "taken": 29
+        },
+        "phase_2b": {
+          "vacancy": 50,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_2c": {
+          "vacancy": 151,
+          "applied": 28,
+          "taken": 28
+        },
+        "phase_2c_supp": {
+          "vacancy": 123,
+          "applied": 79,
+          "taken": 79
+        },
+        "phase_3": {
+          "vacancy": 44,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": false,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100,
+        "phase_2b_competitiveness": 0,
+        "phase_2c_success_rate": 100.0,
+        "phase_2c_competitiveness": 0.0,
+        "phase_2c_supp_success_rate": 100.0,
+        "phase_2c_supp_competitiveness": 0.0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "anderson": {
+      "name": "Anderson Primary School",
+      "total_vacancy": 210,
+      "phases": {
+        "phase_1": {
+          "vacancy": 150,
+          "applied": 98,
+          "taken": 98
+        },
+        "phase_2a": {
+          "vacancy": 52,
+          "applied": 38,
+          "taken": 38
+        },
+        "phase_2b": {
+          "vacancy": 25,
+          "applied": 18,
+          "taken": 18
+        },
+        "phase_2c": {
+          "vacancy": 60,
+          "applied": 64,
+          "taken": 60,
+          "ballot_notes": "PR<15/3"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100.0,
+        "phase_2b_competitiveness": 0.0,
+        "phase_2c_success_rate": 93.8,
+        "phase_2c_competitiveness": 6.2,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "ang_mo_kio": {
+      "name": "Ang Mo Kio Primary School",
+      "total_vacancy": 150,
+      "phases": {
+        "phase_1": {
+          "vacancy": 90,
+          "applied": 49,
+          "taken": 49
+        },
+        "phase_2a": {
+          "vacancy": 41,
+          "applied": 24,
+          "taken": 24
+        },
+        "phase_2b": {
+          "vacancy": 26,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_2c": {
+          "vacancy": 77,
+          "applied": 34,
+          "taken": 34
+        },
+        "phase_2c_supp": {
+          "vacancy": 43,
+          "applied": 18,
+          "taken": 18
+        },
+        "phase_3": {
+          "vacancy": 25,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": false,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 100,
+        "phase_2b_competitiveness": 0,
+        "phase_2c_success_rate": 100.0,
+        "phase_2c_competitiveness": 0.0,
+        "phase_2c_supp_success_rate": 100.0,
+        "phase_2c_supp_competitiveness": 0.0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "anglo_chinese_junior": {
+      "name": "Anglo-Chinese School (Junior)",
+      "total_vacancy": 270,
+      "phases": {
+        "phase_1": {
+          "vacancy": 210,
+          "applied": 75,
+          "taken": 75
+        },
+        "phase_2a": {
+          "vacancy": 135,
+          "applied": 102,
+          "taken": 102
+        },
+        "phase_2b": {
+          "vacancy": 31,
+          "applied": 50,
+          "taken": 31,
+          "ballot_notes": "SC<141/31"
+        },
+        "phase_2c": {
+          "vacancy": 63,
+          "applied": 76,
+          "taken": 63,
+          "ballot_notes": "SC1-213/7"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 62.0,
+        "phase_2b_competitiveness": 38.0,
+        "phase_2c_success_rate": 82.9,
+        "phase_2c_competitiveness": 17.1,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "anglo_chinese_primary": {
+      "name": "Anglo-Chinese School (Primary)",
+      "total_vacancy": 240,
+      "phases": {
+        "phase_1": {
+          "vacancy": 180,
+          "applied": 73,
+          "taken": 73
+        },
+        "phase_2a": {
+          "vacancy": 108,
+          "applied": 80,
+          "taken": 80
+        },
+        "phase_2b": {
+          "vacancy": 29,
+          "applied": 34,
+          "taken": 29,
+          "ballot_notes": "SC<130/29"
+        },
+        "phase_2c": {
+          "vacancy": 59,
+          "applied": 74,
+          "taken": 59,
+          "ballot_notes": "SC>215/11"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 100.0,
+        "phase_2a_competitiveness": 0.0,
+        "phase_2b_success_rate": 85.3,
+        "phase_2b_competitiveness": 14.7,
+        "phase_2c_success_rate": 79.7,
+        "phase_2c_competitiveness": 20.3,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    },
+    "angsana": {
+      "name": "Angsana Primary School",
+      "total_vacancy": 280,
+      "phases": {
+        "phase_1": {
+          "vacancy": 220,
+          "applied": 127,
+          "taken": 127
+        },
+        "phase_2a": {
+          "vacancy": 94,
+          "applied": 115,
+          "taken": 94,
+          "ballot_notes": "SC<1111/94"
+        },
+        "phase_2b": {
+          "vacancy": 20,
+          "applied": 1,
+          "taken": 1
+        },
+        "phase_2c": {
+          "vacancy": 60,
+          "applied": 155,
+          "taken": 60,
+          "ballot_notes": "SC<1152/60"
+        },
+        "phase_2c_supp": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        },
+        "phase_3": {
+          "vacancy": 0,
+          "applied": 0,
+          "taken": 0
+        }
+      },
+      "balloted": true,
+      "year": 2024,
+      "competitiveness_metrics": {
+        "phase_1_success_rate": 100.0,
+        "phase_1_competitiveness": 0.0,
+        "phase_2a_success_rate": 81.7,
+        "phase_2a_competitiveness": 18.3,
+        "phase_2b_success_rate": 100.0,
+        "phase_2b_competitiveness": 0.0,
+        "phase_2c_success_rate": 38.7,
+        "phase_2c_competitiveness": 61.3,
+        "phase_2c_supp_success_rate": 100,
+        "phase_2c_supp_competitiveness": 0,
+        "phase_3_success_rate": 100,
+        "phase_3_competitiveness": 0
+      },
+      "overall_competitiveness_score": 0,
+      "competitiveness_tier": "Not Competitive"
+    }
+  }
+}

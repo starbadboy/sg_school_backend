@@ -1,0 +1,38 @@
+---
+globs: sg-school-frontend/**/*
+description: "Frontend development standards for the school finder UI"
+---
+
+# Frontend Development Standards
+
+## Component Structure
+- Follow the component configuration in [components.json](mdc:sg-school-frontend/components.json)
+- Use existing UI patterns and design system
+- Reference [ui_mockup_design.md](mdc:ui_mockup_design.md) for design guidelines
+
+## Build Process
+- Frontend assets are built and deployed to `sg_school_backend/src/static/`
+- Ensure build process updates both CSS and JS assets
+- Test that built assets work with Flask backend serving
+
+## API Integration
+- Make API calls to Flask backend endpoints
+- Handle loading states and error responses appropriately
+- Implement proper data fetching patterns for school information
+
+## User Experience
+- Follow modern UX best practices as specified in user rules
+- Create beautiful and intuitive interfaces
+- Ensure responsive design for different screen sizes
+- Reference [user_documentation.md](mdc:user_documentation.md) for user flow guidance
+
+## Code Organization
+- Keep components focused and reusable
+- Use consistent naming conventions
+- Organize files logically within the frontend structure
+- Follow existing ESLint configuration in [eslint.config.js](mdc:sg-school-frontend/eslint.config.js)
+
+## Data Handling
+- Handle school data according to [sgschooling_data_structure.md](mdc:sgschooling_data_structure.md)
+- Implement proper state management for user interactions
+- Cache school data appropriately for performance

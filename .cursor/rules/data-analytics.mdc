@@ -1,0 +1,35 @@
+---
+globs: *.py,*.csv,*.md
+description: "Data analytics and school data processing standards"
+---
+
+# Data Analytics Standards
+
+## School Data Processing
+- Follow data structure defined in [sgschooling_data_structure.md](mdc:sgschooling_data_structure.md)
+- Use [extract_sgschooling_data.py](mdc:extract_sgschooling_data.py) as reference for data extraction patterns
+- Handle CSV files like [ang_mo_kio_school_data.csv](mdc:ang_mo_kio_school_data.csv) with proper encoding
+
+## Data Quality
+- Implement data validation for all school data inputs
+- Handle missing or malformed data gracefully
+- Add logging for data processing operations
+- Verify data integrity before database operations
+
+## API Data Integration
+- Reference [data_gov_sg_api_info.md](mdc:data_gov_sg_api_info.md) for external API guidelines
+- Implement proper error handling for API calls
+- Cache API responses appropriately to avoid rate limiting
+- Handle API authentication and token management securely
+
+## Performance Considerations
+- Optimize database queries for school data retrieval
+- Implement pagination for large datasets
+- Use appropriate indexing for school search operations
+- Cache frequently accessed school information
+
+## Data Documentation
+- Document all data transformations and calculations
+- Keep [sgschooling_data_structure.md](mdc:sgschooling_data_structure.md) updated with schema changes
+- Add comments for complex data processing logic
+- Update [singapore_primary_school_overview.md](mdc:singapore_primary_school_overview.md) when adding new data sources
