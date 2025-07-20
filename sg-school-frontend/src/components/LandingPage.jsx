@@ -1,5 +1,5 @@
 import React from 'react'
-import { MapPin, BarChart3, Brain, Users, TrendingUp, Shield, Clock, Award, Star, Zap, Target, ChevronDown } from 'lucide-react'
+import { MapPin, BarChart3, Brain, Users, TrendingUp, Shield, Clock, Award, Zap, Target, ChevronDown } from 'lucide-react'
 
 const LandingPage = () => {
   const features = [
@@ -44,18 +44,7 @@ const LandingPage = () => {
     { label: 'Success Rate', value: '94%', icon: Shield, color: 'text-amber-600', bgColor: 'bg-amber-50' }
   ]
 
-  const testimonials = [
-    {
-      quote: "This tool helped us get our child into our top choice school. The AI strategy was spot-on!",
-      author: "Parent from Ang Mo Kio",
-      rating: 5
-    },
-    {
-      quote: "The P1 data analysis saved us so much research time. Highly recommended for all parents.",
-      author: "Parent from Tampines",
-      rating: 5
-    }
-  ]
+
 
   return (
     <div className="text-center space-y-20">
@@ -76,9 +65,9 @@ const LandingPage = () => {
             in Singapore
           </h1>
           
-          <p className="text-responsive-xl text-slate-600 max-w-4xl mx-auto leading-relaxed font-medium">
-            Leverage AI-powered insights, comprehensive P1 data analysis, and strategic recommendations 
-            to maximize your child's admission chances at their ideal primary school.
+          <p className="text-responsive-xl text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
+            AI-powered school search with comprehensive P1 data and personalized admission strategies 
+            for Singapore primary schools.
           </p>
         </div>
 
@@ -100,11 +89,10 @@ const LandingPage = () => {
       <div className="space-y-12">
         <div className="text-center space-y-4">
           <h2 className="section-header">
-            Everything You Need to 
-            <span className="text-blue-600"> Secure Your Child's Future</span>
+            <span className="text-blue-600">Core Features</span>
           </h2>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Our comprehensive platform combines cutting-edge technology with deep educational insights
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Everything you need to find and secure your ideal primary school
           </p>
         </div>
 
@@ -139,9 +127,9 @@ const LandingPage = () => {
             <Target className="h-8 w-8 text-white" />
           </div>
           
-          <h2 className="text-3xl font-bold text-slate-900">Ready to Get Started?</h2>
+          <h2 className="text-3xl font-bold text-slate-900">Ready to Find Your School?</h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Enter your address below to discover nearby primary schools and begin your personalized school selection journey.
+            Enter your address to discover nearby primary schools and get AI-powered recommendations.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-slate-500">
@@ -162,7 +150,7 @@ const LandingPage = () => {
       <div className="space-y-12">
         <div className="text-center space-y-4">
           <h2 className="section-header">How It Works</h2>
-          <p className="text-xl text-slate-600">Simple, fast, and effective - get results in minutes</p>
+          <p className="text-xl text-slate-600">Get started in 3 simple steps</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -212,31 +200,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="space-y-12">
-        <div className="text-center space-y-4">
-          <h2 className="section-header">Trusted by Parents Across Singapore</h2>
-          <p className="text-xl text-slate-600">Join thousands of families who found their perfect school</p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="card-hover text-left animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-1">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
-                  ))}
-                </div>
-                <blockquote className="text-slate-700 text-lg leading-relaxed italic">
-                  "{testimonial.quote}"
-                </blockquote>
-                <cite className="text-slate-500 font-medium text-sm">— {testimonial.author}</cite>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+
     </div>
   )
 }
