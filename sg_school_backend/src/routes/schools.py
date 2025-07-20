@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 import math
 import json
+from src.models.user import db, School
 
 schools_bp = Blueprint('schools', __name__)
 
@@ -83,164 +84,295 @@ def get_schools_data():
     return []
 
 def load_real_p1_data():
-    """Load real 2024 P1 data from JSON file"""
+    """Load real 2024 P1 data from database"""
     try:
-        import json
-        import os
-        
-        # Path to the real data file
-        data_file = os.path.join(os.path.dirname(__file__), '..', 'database', 'p1_2024_complete_data.json')
-        
-        with open(data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        return data['schools']
+        schools = School.query.all()
+        schools_dict = {}
+        for school in schools:
+            schools_dict[school.school_key] = school.to_dict()
+        return schools_dict
     except Exception as e:
-        print(f"Error loading real P1 data: {e}")
+        print(f"Error loading real P1 data from database: {e}")
         return {}
 
 def extract_p1_data_for_school(school_name, year=2024):
-    """Extract real P1 data for a specific school from sgschooling.com"""
+    """Extract real P1 data for a specific school from database with improved fuzzy matching"""
     try:
-        # Load real data from JSON file
-        real_schools_data = load_real_p1_data()
-        
-        # Create school key from name - normalize the name
-        school_key = school_name.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('.', '').replace("'", '').replace(',', '')
-        
-        # Direct lookup first
-        if school_key in real_schools_data:
-            school_data = real_schools_data[school_key].copy()
-            return format_p1_data(school_data, school_name)
-        
-        # Try partial matches for common variations
-        for key, data in real_schools_data.items():
-            # Check if any significant word from school_key is in the real data key
-            school_words = [word for word in school_key.split('_') if len(word) > 3]
-            key_words = key.split('_')
+            # Create school key from name - normalize the name
+            school_key = school_name.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('.', '').replace("'", '').replace(',', '').replace('&', 'and')
             
-            if any(word in key_words for word in school_words):
-                school_data = data.copy()
-                return format_p1_data(school_data, school_name)
-        
-        # Try fuzzy matching for specific school patterns
-        if 'anderson' in school_key and 'anderson' in real_schools_data:
-            return format_p1_data(real_schools_data['anderson'], school_name)
-        elif 'ang_mo_kio' in school_key and 'ang_mo_kio' in real_schools_data:
-            return format_p1_data(real_schools_data['ang_mo_kio'], school_name)
-        elif 'ai_tong' in school_key and 'ai_tong' in real_schools_data:
-            return format_p1_data(real_schools_data['ai_tong'], school_name)
-        elif 'chij' in school_key:
-            # Find any CHIJ school as template
-            for key, data in real_schools_data.items():
-                if 'chij' in key:
-                    return format_p1_data(data, school_name)
-        
-        # If no match found, generate realistic pattern
-        return generate_default_p1_data(school_name, year)
+            # 1. Direct lookup by school_key first
+            school = School.query.filter_by(school_key=school_key).first()
+            if school:
+                return format_p1_data_from_school(school, school_name)
+            
+            # 2. Try fuzzy matching by name (case-insensitive)
+            school = School.query.filter(School.name.ilike(f'%{school_name}%')).first()
+            if school:
+                return format_p1_data_from_school(school, school_name)
+            
+            # 3. ENHANCED: Aggressive suffix removal for government API names
+            cleaned_search_name = school_name.lower()
+            
+            # Remove common government API suffixes (more comprehensive)
+            suffixes_to_remove = [
+                ' school (primary)',
+                ' primary school', 
+                ' school',
+                ' primary',
+                ' (primary)',
+                ' (pri)',
+                ' pri'
+            ]
+            
+            for suffix in suffixes_to_remove:
+                cleaned_search_name = cleaned_search_name.replace(suffix, '').strip()
+            
+            # Remove extra whitespace and normalize
+            cleaned_search_name = ' '.join(cleaned_search_name.split())
+            
+            if cleaned_search_name != school_name.lower() and len(cleaned_search_name) > 2:
+                # Try exact match with cleaned name
+                school = School.query.filter(School.name.ilike(cleaned_search_name)).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+                
+                # Try partial match with cleaned name
+                school = School.query.filter(School.name.ilike(f'%{cleaned_search_name}%')).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+            
+            # 4. ENHANCED: Better word-by-word matching
+            # Split cleaned name into significant words (3+ chars)
+            search_words = [word.strip() for word in cleaned_search_name.split() if len(word.strip()) >= 3]
+            
+            if search_words:
+                # Try to find schools that contain ALL significant words
+                for school in School.query.all():
+                    school_name_lower = school.name.lower()
+                    if all(word in school_name_lower for word in search_words):
+                        return format_p1_data_from_school(school, school_name)
+                
+                # Try to find schools that contain MOST significant words (80%+ match)
+                if len(search_words) > 1:
+                    min_matches = max(1, int(len(search_words) * 0.8))  # 80% of words must match
+                    for school in School.query.all():
+                        school_name_lower = school.name.lower()
+                        matches = sum(1 for word in search_words if word in school_name_lower)
+                        if matches >= min_matches:
+                            return format_p1_data_from_school(school, school_name)
+            
+            # 5. ENHANCED: Try key-based matching with cleaned name
+            cleaned_key = cleaned_search_name.replace(' ', '_').replace('-', '_').replace('&', 'and')
+            school_words = [word for word in cleaned_key.split('_') if len(word) >= 3]
+            
+            for word in school_words:
+                school = School.query.filter(School.school_key.like(f'%{word}%')).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+            
+            # 6. ENHANCED: Advanced pattern matching for specific cases
+            search_patterns = {
+                # Handle common naming patterns
+                'fairfield': ['fairfield'],
+                'methodist': ['methodist'], 
+                'anderson': ['anderson'],
+                'ang_mo_kio': ['ang_mo_kio', 'ang mo kio'],
+                'ai_tong': ['ai_tong', 'ai tong'],
+                'chij': ['chij'],
+                'nanyang': ['nanyang'],
+                'raffles': ['raffles'],
+                'catholic': ['catholic'],
+                'tao_nan': ['tao_nan', 'tao nan'],
+                'new_town': ['new_town', 'new town'],
+                'anglo_chinese': ['anglo_chinese', 'anglo-chinese'],
+                'st_': ['st_', 'saint'],
+                'geylang': ['geylang'],
+                'queenstown': ['queenstown']
+            }
+            
+            for pattern, variants in search_patterns.items():
+                if any(variant in cleaned_search_name.replace('_', ' ') for variant in variants):
+                    for variant in variants:
+                        school = School.query.filter(School.school_key.like(f'%{variant.replace(" ", "_")}%')).first()
+                        if school:
+                            return format_p1_data_from_school(school, school_name)
+                        school = School.query.filter(School.name.ilike(f'%{variant}%')).first()
+                        if school:
+                            return format_p1_data_from_school(school, school_name)
+            
+            # If no match found, return "no data available"
+            return {
+                'year': year,
+                'school_name': school_name,
+                'data_available': False,
+                'message': 'No P1 data available for this school in our database',
+                'total_schools_in_database': School.query.count(),
+                'suggestion': 'Please check the school name or try searching for similar schools'
+            }
         
     except Exception as e:
         print(f"Error extracting P1 data for {school_name}: {e}")
-        return generate_default_p1_data(school_name, year)
+        return {
+            'year': year,
+            'school_name': school_name,
+            'data_available': False,
+            'message': 'Error retrieving P1 data',
+            'error': str(e)
+        }
 
-def format_p1_data(school_data, school_name):
-    """Format real P1 data for API response"""
+def format_p1_data_from_school(school, school_name):
+    """Format P1 data from School model for API response"""
     return {
-        'year': school_data.get('year', 2024),
-        'phases': school_data.get('phases', {}),
-        'total_vacancy': school_data.get('total_vacancy', 180),
-        'balloted': school_data.get('balloted', False),
+        'year': school.year,
+        'phases': {
+            'phase_1': school.get_phase_data('phase_1'),
+            'phase_2a': school.get_phase_data('phase_2a'),
+            'phase_2b': school.get_phase_data('phase_2b'),
+            'phase_2c': school.get_phase_data('phase_2c'),
+            'phase_2c_supp': school.get_phase_data('phase_2c_supp'),
+            'phase_3': school.get_phase_data('phase_3'),
+        },
+        'total_vacancy': school.total_vacancy,
+        'balloted': school.balloted,
         'school_name': school_name,
-        'competitiveness_score': school_data.get('overall_competitiveness_score', 0),
-        'competitiveness_tier': school_data.get('competitiveness_tier', 'Unknown')
+        'competitiveness_score': school.overall_competitiveness_score,
+        'competitiveness_tier': school.competitiveness_tier
     }
 
-def generate_default_p1_data(school_name, year=2024):
-    """Generate realistic P1 data pattern for schools not in our real data"""
-    import random
-    
-    # Determine school type based on name
-    school_name_lower = school_name.lower()
-    
-    if any(word in school_name_lower for word in ['raffles', 'nanyang', 'rosyth', 'henry park']):
-        # Elite schools - very competitive
-        base_vacancy = 210
-        competitiveness = 'elite'
-    elif any(word in school_name_lower for word in ['chij', 'methodist', 'catholic', 'st.', 'saint']):
-        # Popular schools - highly competitive
-        base_vacancy = 210
-        competitiveness = 'high'
-    elif any(word in school_name_lower for word in ['tao nan', 'ai tong', 'chongfu', 'nan hua']):
-        # SAP schools - competitive
-        base_vacancy = 240
-        competitiveness = 'medium'
-    else:
-        # Neighborhood schools - less competitive
-        base_vacancy = 180
-        competitiveness = 'low'
-    
-    # Generate realistic patterns based on actual sgschooling.com data structure
-    if competitiveness == 'elite':
-        phases = {
-            'phase_1': {'vacancy': int(base_vacancy * 0.71), 'applied': int(base_vacancy * 0.45), 'taken': int(base_vacancy * 0.45)},
-            'phase_2a': {'vacancy': int(base_vacancy * 0.25), 'applied': int(base_vacancy * 0.4), 'taken': int(base_vacancy * 0.25)},
-            'phase_2b': {'vacancy': 20, 'applied': int(base_vacancy * 0.2), 'taken': 20},
-            'phase_2c': {'vacancy': 40, 'applied': int(base_vacancy * 0.8), 'taken': 40},
-            'phase_2c_supp': {'vacancy': 0, 'applied': 0, 'taken': 0},
-            'phase_3': {'vacancy': 0, 'applied': 0, 'taken': 0}
+
+
+def enrich_school_with_p1_data(school):
+    """Enrich government school data with P1 data from database using improved fuzzy matching"""
+    try:
+        # Try to find matching school in our database
+        school_name = school.get('name', '')
+        
+        # Use the same enhanced matching logic as extract_p1_data_for_school
+        
+        # 1. Direct exact match first
+        db_school = School.query.filter(School.name.ilike(school_name)).first()
+        if db_school:
+            # Found exact match, use it
+            school['p1_data'] = db_school.to_p1_data_format()
+            return school
+        
+        # 2. ENHANCED: Aggressive suffix removal for government API names
+        cleaned_search_name = school_name.lower()
+        
+        # Remove common government API suffixes (comprehensive)
+        suffixes_to_remove = [
+            ' school (primary)',
+            ' primary school', 
+            ' school',
+            ' primary',
+            ' (primary)',
+            ' (pri)',
+            ' pri'
+        ]
+        
+        for suffix in suffixes_to_remove:
+            cleaned_search_name = cleaned_search_name.replace(suffix, '').strip()
+        
+        # Remove extra whitespace and normalize
+        cleaned_search_name = ' '.join(cleaned_search_name.split())
+        
+        if cleaned_search_name != school_name.lower() and len(cleaned_search_name) > 2:
+            # Try exact match with cleaned name
+            db_school = School.query.filter(School.name.ilike(cleaned_search_name)).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+            
+            # Try partial match with cleaned name
+            db_school = School.query.filter(School.name.ilike(f'%{cleaned_search_name}%')).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+        
+        # 3. ENHANCED: Better word-by-word matching
+        search_words = [word.strip() for word in cleaned_search_name.split() if len(word.strip()) >= 3]
+        
+        if search_words:
+            # Try to find schools that contain ALL significant words
+            for db_school in School.query.all():
+                school_name_lower = db_school.name.lower()
+                if all(word in school_name_lower for word in search_words):
+                    school['p1_data'] = db_school.to_p1_data_format()
+                    return school
+            
+            # Try to find schools that contain MOST significant words (80%+ match)
+            if len(search_words) > 1:
+                min_matches = max(1, int(len(search_words) * 0.8))
+                for db_school in School.query.all():
+                    school_name_lower = db_school.name.lower()
+                    matches = sum(1 for word in search_words if word in school_name_lower)
+                    if matches >= min_matches:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+        
+        # 4. ENHANCED: Key-based matching
+        cleaned_key = cleaned_search_name.replace(' ', '_').replace('-', '_').replace('&', 'and')
+        school_words = [word for word in cleaned_key.split('_') if len(word) >= 3]
+        
+        for word in school_words:
+            db_school = School.query.filter(School.school_key.like(f'%{word}%')).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+        
+        # 5. ENHANCED: Pattern matching for specific cases
+        search_patterns = {
+            'fairfield': ['fairfield'],
+            'methodist': ['methodist'], 
+            'anderson': ['anderson'],
+            'ang_mo_kio': ['ang_mo_kio', 'ang mo kio'],
+            'ai_tong': ['ai_tong', 'ai tong'],
+            'chij': ['chij'],
+            'nanyang': ['nanyang'],
+            'raffles': ['raffles'],
+            'catholic': ['catholic'],
+            'tao_nan': ['tao_nan', 'tao nan'],
+            'new_town': ['new_town', 'new town'],
+            'anglo_chinese': ['anglo_chinese', 'anglo-chinese'],
+            'st_': ['st_', 'saint'],
+            'geylang': ['geylang'],
+            'queenstown': ['queenstown']
         }
-        balloted = True
-    elif competitiveness == 'high':
-        phases = {
-            'phase_1': {'vacancy': int(base_vacancy * 0.71), 'applied': int(base_vacancy * 0.4), 'taken': int(base_vacancy * 0.4)},
-            'phase_2a': {'vacancy': int(base_vacancy * 0.3), 'applied': int(base_vacancy * 0.3), 'taken': int(base_vacancy * 0.3)},
-            'phase_2b': {'vacancy': 25, 'applied': 30, 'taken': 25},
-            'phase_2c': {'vacancy': 50, 'applied': 90, 'taken': 50},
-            'phase_2c_supp': {'vacancy': 0, 'applied': 0, 'taken': 0},
-            'phase_3': {'vacancy': 0, 'applied': 0, 'taken': 0}
+        
+        for pattern, variants in search_patterns.items():
+            if any(variant in cleaned_search_name.replace('_', ' ') for variant in variants):
+                for variant in variants:
+                    db_school = School.query.filter(School.school_key.like(f'%{variant.replace(" ", "_")}%')).first()
+                    if db_school:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+                    db_school = School.query.filter(School.name.ilike(f'%{variant}%')).first()
+                    if db_school:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+        
+        # If no match found, return no data available
+        school['p1_data'] = {
+            'year': 2024,
+            'school_name': school_name,
+            'data_available': False,
+            'message': 'No P1 data available for this school in our database',
+            'total_schools_in_database': School.query.count()
         }
-        balloted = True
-    elif competitiveness == 'medium':
-        phases = {
-            'phase_1': {'vacancy': int(base_vacancy * 0.75), 'applied': int(base_vacancy * 0.35), 'taken': int(base_vacancy * 0.35)},
-            'phase_2a': {'vacancy': int(base_vacancy * 0.35), 'applied': int(base_vacancy * 0.25), 'taken': int(base_vacancy * 0.25)},
-            'phase_2b': {'vacancy': 30, 'applied': 25, 'taken': 25},
-            'phase_2c': {'vacancy': 60, 'applied': 75, 'taken': 60},
-            'phase_2c_supp': {'vacancy': 0, 'applied': 5, 'taken': 0},
-            'phase_3': {'vacancy': 0, 'applied': 0, 'taken': 0}
+        return school
+            
+    except Exception as e:
+        print(f"Error enriching school {school.get('name', 'Unknown')}: {e}")
+        # Return error state instead of mock data
+        school['p1_data'] = {
+            'year': 2024,
+            'school_name': school.get('name', 'Unknown'),
+            'data_available': False,
+            'message': 'Error retrieving P1 data',
+            'error': str(e)
         }
-        balloted = False
-    else:  # low
-        phases = {
-            'phase_1': {'vacancy': int(base_vacancy * 0.6), 'applied': int(base_vacancy * 0.25), 'taken': int(base_vacancy * 0.25)},
-            'phase_2a': {'vacancy': int(base_vacancy * 0.4), 'applied': int(base_vacancy * 0.15), 'taken': int(base_vacancy * 0.15)},
-            'phase_2b': {'vacancy': 35, 'applied': 10, 'taken': 10},
-            'phase_2c': {'vacancy': 80, 'applied': 45, 'taken': 45},
-            'phase_2c_supp': {'vacancy': 35, 'applied': 15, 'taken': 15},
-            'phase_3': {'vacancy': 25, 'applied': 0, 'taken': 0}
-        }
-        balloted = False
-    
-    # Calculate competitiveness
-    total_applied = sum(phase['applied'] for phase in phases.values())
-    total_taken = sum(phase['taken'] for phase in phases.values())
-    
-    if total_applied > 0:
-        success_rate = (total_taken / total_applied) * 100
-        competitiveness_score = 100 - success_rate
-    else:
-        success_rate = 100
-        competitiveness_score = 0
-    
-    return {
-        'year': year,
-        'phases': phases,
-        'total_vacancy': base_vacancy,
-        'balloted': balloted,
-        'school_name': school_name,
-        'competitiveness_score': round(competitiveness_score, 1),
-        'competitiveness_tier': f'{competitiveness.title()} Competitiveness (Estimated)'
-    }
+        return school
 
 @schools_bp.route('/search', methods=['POST'])
 def search_schools():
@@ -257,7 +389,7 @@ def search_schools():
     if not user_location:
         return jsonify({'error': 'Could not geocode address'}), 400
     
-    # Get all schools data
+    # Get all schools data from government API
     schools = get_schools_data()
     
     # Calculate distances and filter by radius
@@ -276,11 +408,9 @@ def search_schools():
                 school['latitude'] = school_location['latitude']
                 school['longitude'] = school_location['longitude']
                 
-                # Add P1 data
-                p1_data = extract_p1_data_for_school(school['name'])
-                school['p1_data'] = p1_data
-                
-                nearby_schools.append(school)
+                # Enrich with P1 data from database
+                enriched_school = enrich_school_with_p1_data(school)
+                nearby_schools.append(enriched_school)
     
     # Sort by distance
     nearby_schools.sort(key=lambda x: x['distance'])
@@ -322,4 +452,33 @@ def geocode():
         return jsonify({'error': 'Could not geocode address'}), 400
     
     return jsonify(location)
+
+@schools_bp.route('/database', methods=['GET'])
+def get_schools_from_database():
+    """Get all schools from database - useful for debugging"""
+    try:
+        schools = School.query.all()
+        schools_data = []
+        for school in schools:
+            school_dict = school.to_dict()
+            schools_data.append(school_dict)
+        
+        return jsonify({
+            'schools': schools_data,
+            'total_count': len(schools_data)
+        })
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+@schools_bp.route('/database/<school_key>', methods=['GET'])
+def get_school_by_key(school_key):
+    """Get a specific school by its key from database"""
+    try:
+        school = School.query.filter_by(school_key=school_key).first()
+        if not school:
+            return jsonify({'error': 'School not found'}), 404
+        
+        return jsonify(school.to_dict())
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
 

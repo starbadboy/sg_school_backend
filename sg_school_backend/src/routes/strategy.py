@@ -55,13 +55,27 @@ School Data Analysis:
 """
     
     for school in schools_data:
-        prompt += f"""
+        p1_data = school.get('p1_data', {})
+        
+        # Check if real P1 data is available
+        if p1_data.get('data_available', True):  # Default to True for backward compatibility
+            prompt += f"""
 {school['name']}:
 - Distance from user: {school.get('distance', 'Unknown')} km
 - P1 Data (2024):
-  - Total Vacancy: {school.get('p1_data', {}).get('total_vacancy', 'Unknown')}
-  - Balloted: {school.get('p1_data', {}).get('balloted', 'Unknown')}
-  - Phase 2C Applied/Taken: {school.get('p1_data', {}).get('phases', {}).get('phase_2c', {}).get('applied', 'Unknown')}/{school.get('p1_data', {}).get('phases', {}).get('phase_2c', {}).get('taken', 'Unknown')}
+  - Total Vacancy: {p1_data.get('total_vacancy', 'Unknown')}
+  - Balloted: {p1_data.get('balloted', 'Unknown')}
+  - Phase 2C Applied/Taken: {p1_data.get('phases', {}).get('phase_2c', {}).get('applied', 'Unknown')}/{p1_data.get('phases', {}).get('phase_2c', {}).get('taken', 'Unknown')}
+  - Competitiveness: {p1_data.get('competitiveness_tier', 'Unknown')}
+"""
+        else:
+            # No real P1 data available
+            prompt += f"""
+{school['name']}:
+- Distance from user: {school.get('distance', 'Unknown')} km
+- P1 Data (2024): ❌ No data available in our database
+- Note: {p1_data.get('message', 'P1 data not available for this school')}
+- Strategy: Consider as backup option or research manually
 """
     
     prompt += """
@@ -181,37 +195,54 @@ def analyze_competitiveness():
     analysis = []
     for school in schools_data:
         p1_data = school.get('p1_data', {})
-        phases = p1_data.get('phases', {})
         
-        # Calculate competitiveness score
-        phase_2c = phases.get('phase_2c', {})
-        applied = phase_2c.get('applied', 0)
-        taken = phase_2c.get('taken', 0)
-        
-        if taken > 0:
-            competition_ratio = applied / taken
+        # Check if real P1 data is available
+        if p1_data.get('data_available', True):  # Default to True for backward compatibility
+            phases = p1_data.get('phases', {})
+            
+            # Calculate competitiveness score
+            phase_2c = phases.get('phase_2c', {})
+            applied = phase_2c.get('applied', 0)
+            taken = phase_2c.get('taken', 0)
+            
+            if taken > 0:
+                competition_ratio = applied / taken
+            else:
+                competition_ratio = 1
+            
+            # Determine competitiveness level
+            if competition_ratio > 2:
+                level = 'Very High'
+            elif competition_ratio > 1.5:
+                level = 'High'
+            elif competition_ratio > 1.2:
+                level = 'Medium'
+            else:
+                level = 'Low'
+            
+            analysis.append({
+                'school_name': school['name'],
+                'distance': school.get('distance', 0),
+                'competition_ratio': round(competition_ratio, 2),
+                'competitiveness_level': level,
+                'balloted': p1_data.get('balloted', False),
+                'total_vacancy': p1_data.get('total_vacancy', 0),
+                'data_available': True,
+                'recommendation': get_school_recommendation(level, school.get('distance', 0))
+            })
         else:
-            competition_ratio = 1
-        
-        # Determine competitiveness level
-        if competition_ratio > 2:
-            level = 'Very High'
-        elif competition_ratio > 1.5:
-            level = 'High'
-        elif competition_ratio > 1.2:
-            level = 'Medium'
-        else:
-            level = 'Low'
-        
-        analysis.append({
-            'school_name': school['name'],
-            'distance': school.get('distance', 0),
-            'competition_ratio': round(competition_ratio, 2),
-            'competitiveness_level': level,
-            'balloted': p1_data.get('balloted', False),
-            'total_vacancy': p1_data.get('total_vacancy', 0),
-            'recommendation': get_school_recommendation(level, school.get('distance', 0))
-        })
+            # No P1 data available for this school
+            analysis.append({
+                'school_name': school['name'],
+                'distance': school.get('distance', 0),
+                'competition_ratio': 0,
+                'competitiveness_level': 'Unknown',
+                'balloted': False,
+                'total_vacancy': 0,
+                'data_available': False,
+                'message': p1_data.get('message', 'No P1 data available'),
+                'recommendation': 'No data available - research manually or consider as backup option'
+            })
     
     # Sort by competitiveness and distance
     analysis.sort(key=lambda x: (x['competition_ratio'], x['distance']))
