@@ -17,46 +17,56 @@ const P1DataChart = ({ school }) => {
     )
   }
 
-  // Prepare data for phase breakdown chart
+  // Prepare data for phase breakdown chart with new comprehensive format
   const phaseData = [
     {
       phase: 'Phase 1',
       shortPhase: 'P1',
-      applied: p1Data.phases.phase_1?.applied || 0,
+      applied: p1Data.phases.phase_1?.applicants || p1Data.phases.phase_1?.applied || 0,
       taken: p1Data.phases.phase_1?.taken || 0,
-      vacancy: p1Data.phases.phase_1?.vacancy || 0,
+      vacancy: p1Data.phases.phase_1?.vacancies || p1Data.phases.phase_1?.vacancy || 0,
+      balloting: p1Data.phases.phase_1?.balloting || false,
+      status: p1Data.phases.phase_1?.status || p1Data.phases.phase_1?.phase_1_status || '',
       description: 'Siblings of current students'
     },
     {
       phase: 'Phase 2A',
       shortPhase: 'P2A',
-      applied: p1Data.phases.phase_2a?.applied || 0,
+      applied: p1Data.phases.phase_2a?.applicants || p1Data.phases.phase_2a?.applied || 0,
       taken: p1Data.phases.phase_2a?.taken || 0,
-      vacancy: p1Data.phases.phase_2a?.vacancy || 0,
+      vacancy: p1Data.phases.phase_2a?.vacancies || p1Data.phases.phase_2a?.vacancy || 0,
+      balloting: p1Data.phases.phase_2a?.balloting || false,
+      balloting_details: p1Data.phases.phase_2a?.balloting_details || {},
       description: 'Alumni children & staff children'
     },
     {
       phase: 'Phase 2B',
       shortPhase: 'P2B',
-      applied: p1Data.phases.phase_2b?.applied || 0,
+      applied: p1Data.phases.phase_2b?.applicants || p1Data.phases.phase_2b?.applied || 0,
       taken: p1Data.phases.phase_2b?.taken || 0,
-      vacancy: p1Data.phases.phase_2b?.vacancy || 0,
+      vacancy: p1Data.phases.phase_2b?.vacancies || p1Data.phases.phase_2b?.vacancy || 0,
+      balloting: p1Data.phases.phase_2b?.balloting || false,
+      balloting_details: p1Data.phases.phase_2b?.balloting_details || {},
       description: 'Volunteers & community leaders'
     },
     {
       phase: 'Phase 2C',
       shortPhase: 'P2C',
-      applied: p1Data.phases.phase_2c?.applied || 0,
+      applied: p1Data.phases.phase_2c?.applicants || p1Data.phases.phase_2c?.applied || 0,
       taken: p1Data.phases.phase_2c?.taken || 0,
-      vacancy: p1Data.phases.phase_2c?.vacancy || 0,
+      vacancy: p1Data.phases.phase_2c?.vacancies || p1Data.phases.phase_2c?.vacancy || 0,
+      balloting: p1Data.phases.phase_2c?.balloting || false,
+      balloting_details: p1Data.phases.phase_2c?.balloting_details || {},
       description: 'General applicants by distance'
     },
     {
       phase: 'Phase 2C(S)',
       shortPhase: 'P2CS',
-      applied: p1Data.phases.phase_2c_supp?.applied || 0,
+      applied: p1Data.phases.phase_2c_supp?.applicants || p1Data.phases.phase_2c_supp?.applied || 0,
       taken: p1Data.phases.phase_2c_supp?.taken || 0,
-      vacancy: p1Data.phases.phase_2c_supp?.vacancy || 0,
+      vacancy: p1Data.phases.phase_2c_supp?.vacancies || p1Data.phases.phase_2c_supp?.vacancy || 0,
+      balloting: p1Data.phases.phase_2c_supp?.balloting || false,
+      balloting_details: p1Data.phases.phase_2c_supp?.balloting_details || {},
       description: 'Supplementary round'
     }
   ]
@@ -113,7 +123,7 @@ const P1DataChart = ({ school }) => {
       {/* Key Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card-hover text-center">
-          <div className="text-3xl font-bold text-slate-900">{p1Data.total_vacancy}</div>
+          <div className="text-3xl font-bold text-slate-900">{p1Data.total_vacancies}</div>
           <div className="text-sm text-slate-600">Total Vacancy</div>
         </div>
         <div className="card-hover text-center">
@@ -209,6 +219,67 @@ const P1DataChart = ({ school }) => {
         </div>
       </div>
 
+      {/* Balloting Information */}
+      {phaseData.some(phase => phase.balloting) && (
+        <div className="card-elevated">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+            </div>
+            <h4 className="text-xl font-bold text-slate-900">Balloting Information</h4>
+          </div>
+          
+          <div className="space-y-6">
+            {phaseData.filter(phase => phase.balloting).map((phase, index) => (
+              <div key={index} className="border border-amber-200 rounded-2xl p-6 bg-amber-50">
+                <div className="flex items-center space-x-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  <h5 className="text-lg font-bold text-slate-900">{phase.phase} - Balloting Conducted</h5>
+                </div>
+                
+                {phase.balloting_details && Object.keys(phase.balloting_details).length > 0 && (
+                  <div className="space-y-3">
+                    {phase.balloting_details.conducted_for && (
+                      <div className="bg-white rounded-lg p-4">
+                        <div className="text-sm font-medium text-slate-600 mb-1">Conducted for:</div>
+                        <div className="text-slate-900">{phase.balloting_details.conducted_for}</div>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {phase.balloting_details.vacancies_for_ballot > 0 && (
+                        <div className="bg-white rounded-lg p-4 text-center">
+                          <div className="text-2xl font-bold text-amber-600">
+                            {phase.balloting_details.vacancies_for_ballot}
+                          </div>
+                          <div className="text-sm text-slate-600">Vacancies for Ballot</div>
+                        </div>
+                      )}
+                      
+                      {phase.balloting_details.balloting_applicants > 0 && (
+                        <div className="bg-white rounded-lg p-4 text-center">
+                          <div className="text-2xl font-bold text-amber-600">
+                            {phase.balloting_details.balloting_applicants}
+                          </div>
+                          <div className="text-sm text-slate-600">Balloting Applicants</div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {phase.balloting_details.special_note && (
+                      <div className="bg-white rounded-lg p-4">
+                        <div className="text-sm font-medium text-slate-600 mb-1">Special Note:</div>
+                        <div className="text-slate-900 text-sm">{phase.balloting_details.special_note}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Phase Details */}
       <div className="card-elevated">
         <div className="flex items-center space-x-3 mb-8">
@@ -224,11 +295,24 @@ const P1DataChart = ({ school }) => {
             const successRate = phase.applied > 0 ? Math.round((phase.taken / phase.applied) * 100) : 0
             
             return (
-              <div key={index} className="card-hover border-l-4 border-l-blue-500">
+              <div key={index} className={`card-hover border-l-4 ${phase.balloting ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
                 <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h5 className="text-lg font-bold text-slate-900">{phase.phase}</h5>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h5 className="text-lg font-bold text-slate-900">{phase.phase}</h5>
+                      {phase.balloting && (
+                        <div className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-lg">
+                          Balloting
+                        </div>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-600">{phase.description}</p>
+                    {phase.status && (
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="text-sm font-medium text-green-800">Phase 1 Status:</div>
+                        <div className="text-sm text-green-700">{phase.status}</div>
+                      </div>
+                    )}
                   </div>
                   <div className={`px-3 py-1.5 rounded-xl text-sm font-semibold border ${status.color}`}>
                     {status.text}
@@ -336,10 +420,10 @@ const P1DataChart = ({ school }) => {
                   <span>{Math.round(((totalApplied - totalTaken) / totalApplied) * 100)}% of applicants were unsuccessful</span>
                 </li>
               )}
-              {totalTaken < p1Data.total_vacancy && (
+              {totalTaken < p1Data.total_vacancies && (
                 <li className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <span>{p1Data.total_vacancy - totalTaken} places remained unfilled after all phases</span>
+                  <span>{p1Data.total_vacancies - totalTaken} places remained unfilled after all phases</span>
                 </li>
               )}
             </ul>

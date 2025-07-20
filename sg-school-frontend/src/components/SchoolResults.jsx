@@ -13,13 +13,23 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
     const p1Data = school.p1_data
     if (!p1Data) return 'unknown'
     
+    // Use new competitiveness tier from comprehensive data
+    if (p1Data.competitiveness_tier) {
+      const tier = p1Data.competitiveness_tier.toLowerCase().replace(' ', '-')
+      return tier
+    }
+    
+    // Fallback to calculation for legacy data
     const phase2c = p1Data.phases?.phase_2c
     if (!phase2c) return 'unknown'
     
-    const ratio = phase2c.applied / phase2c.taken
-    if (ratio > 2) return 'very-high'
-    if (ratio > 1.5) return 'high'
-    if (ratio > 1.2) return 'medium'
+    const applicants = phase2c.applicants || phase2c.applied || 0
+    const vacancies = phase2c.vacancies || phase2c.vacancy || 1
+    const ratio = applicants / vacancies
+    
+    if (ratio >= 2) return 'very-high'
+    if (ratio >= 1.5) return 'high'
+    if (ratio >= 1.2) return 'medium'
     return 'low'
   }
 
@@ -192,8 +202,10 @@ const SchoolCard = ({ school, isSelected, onSelect, rank }) => {
   const getSuccessRate = () => {
     if (!p1Data?.phases?.phase_2c) return 0
     const phase2c = p1Data.phases.phase_2c
-    if (!phase2c.applied || phase2c.applied === 0) return 100
-    return Math.round((phase2c.taken / phase2c.applied) * 100)
+    const applicants = phase2c.applicants || phase2c.applied || 0
+    const taken = phase2c.taken || 0
+    if (applicants === 0) return 100
+    return Math.round((taken / applicants) * 100)
   }
 
   const getDistancePriority = () => {
@@ -299,11 +311,11 @@ const SchoolCard = ({ school, isSelected, onSelect, rank }) => {
           <div className="card-gradient border border-slate-200">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center space-y-2">
-                <div className="text-2xl font-bold text-slate-900">{p1Data.total_vacancy}</div>
+                <div className="text-2xl font-bold text-slate-900">{p1Data.total_vacancies}</div>
                 <div className="text-sm text-slate-600">Total Vacancy</div>
               </div>
               <div className="text-center space-y-2">
-                <div className="text-2xl font-bold text-slate-900">{p1Data.phases?.phase_2c?.applied || 0}</div>
+                <div className="text-2xl font-bold text-slate-900">{p1Data.phases?.phase_2c?.applicants || p1Data.phases?.phase_2c?.applied || 0}</div>
                 <div className="text-sm text-slate-600">Phase 2C Applied</div>
               </div>
               <div className="text-center space-y-2">
@@ -361,11 +373,22 @@ const getCompetitivenessLevel = (school) => {
   const p1Data = school.p1_data
   if (!p1Data) return 'unknown'
   
+  // Use new competitiveness tier from comprehensive data
+  if (p1Data.competitiveness_tier) {
+    const tier = p1Data.competitiveness_tier.toLowerCase().replace(' ', '-')
+    return tier
+  }
+  
+  // Fallback to calculation for legacy data
   const phase2c = p1Data.phases?.phase_2c
-  if (!phase2c || !phase2c.applied || phase2c.applied === 0) return 'unknown'
+  if (!phase2c) return 'unknown'
+  
+  const applicants = phase2c.applicants || phase2c.applied || 0
+  const taken = phase2c.taken || 0
+  if (applicants === 0) return 'unknown'
   
   // Calculate success rate for applicants
-  const successRate = (phase2c.taken / phase2c.applied) * 100
+  const successRate = (taken / applicants) * 100
   
   // CORRECTED: Lower success rate = MORE competitive
   if (successRate >= 90) return 'low'        // 90-100% success = Less Competitive

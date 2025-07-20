@@ -71,7 +71,7 @@ const SchoolComparison = ({ schools, onBack }) => {
       })),
       vacancy: schools.map(school => ({
         name: school.name.split(' ').slice(0, 2).join(' '),
-        value: school.p1_data?.total_vacancy || 0,
+        value: school.p1_data?.total_vacancies || 0,
         fullName: school.name,
         color: '#3b82f6'
       }))
@@ -259,7 +259,7 @@ const SchoolComparison = ({ schools, onBack }) => {
                     </td>
                     <td className="py-6 px-6">
                       <div className="font-bold text-slate-900 text-lg">
-                        {school.p1_data?.total_vacancy || 'N/A'}
+                        {school.p1_data?.total_vacancies || 'N/A'}
                       </div>
                     </td>
                     <td className="py-6 px-6">
@@ -332,7 +332,7 @@ const SchoolComparison = ({ schools, onBack }) => {
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                       <div className="text-2xl font-bold text-slate-900">
-                        {school.p1_data?.total_vacancy || 'N/A'}
+                        {school.p1_data?.total_vacancies || 'N/A'}
                       </div>
                       <div className="text-xs text-slate-600">P1 Vacancy</div>
                     </div>

@@ -54,34 +54,72 @@ class School(db.Model):
         return f'<School {self.name}>'
 
     def get_phase_data(self, phase_name):
-        """Get phase data as dictionary"""
+        """Get phase data as dictionary, handling both old and new data formats"""
         phase_field = f"{phase_name}_data"
         if hasattr(self, phase_field):
             phase_json = getattr(self, phase_field)
             if phase_json:
                 data = json.loads(phase_json)
-                # Convert "accepted" to "taken" for frontend compatibility
-                if 'accepted' in data:
-                    data['taken'] = data.pop('accepted')
                 
-                # Add vacancy field if missing (our migrated data doesn't have per-phase vacancy)
-                if 'vacancy' not in data:
-                    # For Singapore P1, vacancy per phase isn't fixed, but we can estimate
-                    # based on typical distributions for display purposes
-                    applied = data.get('applied', 0)
-                    taken = data.get('taken', 0)
+                # Handle new comprehensive data format (from 2024 extraction)
+                if 'vacancies' in data or 'applicants' in data or 'status' in data:
+                    # New format - enhance with calculated fields for frontend compatibility
+                    result = {
+                        'vacancies': data.get('vacancies', 0),
+                        'applicants': data.get('applicants', 0),
+                        'balloting': data.get('balloting', False),
+                        'balloting_details': data.get('balloting_details', {}),
+                        'status': data.get('status', ''),
+                        # Calculated fields for backward compatibility
+                        'applied': data.get('applicants', 0),  # Map applicants to applied
+                        'taken': 0,  # Will be calculated based on balloting outcome
+                        'vacancy': data.get('vacancies', 0)
+                    }
                     
-                    if applied > 0 and taken > 0:
-                        # If all applicants were taken, vacancy was at least equal to taken
-                        if applied == taken:
-                            data['vacancy'] = taken
+                    # For Phase 1, handle special status format
+                    if phase_name == 'phase_1' and 'status' in data:
+                        result['taken'] = result['applicants']  # Assume all eligible applicants got places
+                        result['phase_1_status'] = data['status']
+                    
+                    # Calculate taken based on vacancies and balloting
+                    elif result['vacancies'] > 0:
+                        if result['balloting']:
+                            # If balloting occurred, vacancies were filled
+                            balloting_details = result.get('balloting_details', {})
+                            result['taken'] = balloting_details.get('vacancies_for_ballot', result['vacancies'])
                         else:
-                            # If not all were taken, vacancy was likely equal to taken (filled)
-                            data['vacancy'] = taken
-                    else:
-                        data['vacancy'] = 0
+                            # No balloting means either under-subscribed or exactly filled
+                            result['taken'] = min(result['applicants'], result['vacancies'])
+                    
+                    return result
                 
-                return data
+                # Handle legacy format (pre-2024 data)
+                else:
+                    # Convert "accepted" to "taken" for frontend compatibility
+                    if 'accepted' in data:
+                        data['taken'] = data.pop('accepted')
+                    
+                    # Add vacancy field if missing
+                    if 'vacancy' not in data:
+                        applied = data.get('applied', 0)
+                        taken = data.get('taken', 0)
+                        
+                        if applied > 0 and taken > 0:
+                            if applied == taken:
+                                data['vacancy'] = taken
+                            else:
+                                data['vacancy'] = taken
+                        else:
+                            data['vacancy'] = 0
+                    
+                    # Add new format fields for consistency
+                    data['vacancies'] = data.get('vacancy', 0)
+                    data['applicants'] = data.get('applied', 0)
+                    data['balloting'] = data.get('applied', 0) > data.get('vacancy', 0)
+                    data['balloting_details'] = {}
+                    data['status'] = ''
+                    
+                    return data
         return {}
 
     def set_phase_data(self, phase_name, data):
@@ -130,20 +168,53 @@ class School(db.Model):
         }
 
     def to_p1_data_format(self):
-        """Convert to P1 data format expected by frontend"""
-        return {
-            'total_vacancy': self.total_vacancy,
-            'phases': {
-                'phase_1': self.get_phase_data('phase_1'),
-                'phase_2a': self.get_phase_data('phase_2a'),
-                'phase_2b': self.get_phase_data('phase_2b'),
-                'phase_2c': self.get_phase_data('phase_2c'),
-                'phase_2c_supp': self.get_phase_data('phase_2c_supp'),
-                'phase_3': self.get_phase_data('phase_3'),
-            },
-            'balloted': self.balloted,
-            'year': self.year,
-            'competitiveness_metrics': self.get_competitiveness_metrics(),
-            'overall_competitiveness_score': self.overall_competitiveness_score,
-            'competitiveness_tier': self.competitiveness_tier
+        """Convert to comprehensive P1 data format expected by frontend"""
+        phases_data = {
+            'phase_1': self.get_phase_data('phase_1'),
+            'phase_2a': self.get_phase_data('phase_2a'),
+            'phase_2b': self.get_phase_data('phase_2b'),
+            'phase_2c': self.get_phase_data('phase_2c'),
+            'phase_2c_supp': self.get_phase_data('phase_2c_supp'),
+            'phase_3': self.get_phase_data('phase_3'),
         }
+        
+        # Calculate summary statistics
+        total_applicants = sum(phase.get('applicants', 0) for phase in phases_data.values())
+        balloting_phases = [name for name, phase in phases_data.items() if phase.get('balloting', False)]
+        
+        competitiveness_metrics = self.get_competitiveness_metrics()
+        
+        return {
+            'total_vacancies': self.total_vacancy,  # Use new field name
+            'total_applicants': total_applicants,
+            'phases': phases_data,
+            'balloted': self.balloted,
+            'balloting_phases': balloting_phases,
+            'year': self.year,
+            'competitiveness_metrics': competitiveness_metrics,
+            'overall_competitiveness_score': self.overall_competitiveness_score,
+            'competitiveness_tier': self.competitiveness_tier,
+            'competitiveness_summary': {
+                'score': self.overall_competitiveness_score,
+                'tier': self.competitiveness_tier,
+                'balloting_phases_count': len(balloting_phases),
+                'most_competitive_phase': self._get_most_competitive_phase(phases_data)
+            }
+        }
+    
+    def _get_most_competitive_phase(self, phases_data):
+        """Determine the most competitive phase based on applicant to vacancy ratio"""
+        max_ratio = 0
+        most_competitive = None
+        
+        for phase_name, phase_data in phases_data.items():
+            vacancies = phase_data.get('vacancies', 0)
+            applicants = phase_data.get('applicants', 0)
+            
+            if vacancies > 0:
+                ratio = applicants / vacancies
+                if ratio > max_ratio:
+                    max_ratio = ratio
+                    most_competitive = phase_name
+        
+        return most_competitive
