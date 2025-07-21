@@ -84,9 +84,9 @@ class School(db.Model):
                     # Calculate taken based on vacancies and balloting
                     elif result['vacancies'] > 0:
                         if result['balloting']:
-                            # If balloting occurred, vacancies were filled
-                            balloting_details = result.get('balloting_details', {})
-                            result['taken'] = balloting_details.get('vacancies_for_ballot', result['vacancies'])
+                            # FIXED: If balloting occurred, ALL vacancies were filled (oversubscribed)
+                            # Balloting is just the method to decide WHO gets the spots
+                            result['taken'] = result['vacancies']
                         else:
                             # No balloting means either under-subscribed or exactly filled
                             result['taken'] = min(result['applicants'], result['vacancies'])

@@ -26,9 +26,23 @@ const SchoolComparison = ({ schools, onBack }) => {
   }
 
   const getSuccessRate = (school) => {
-    const phase2c = school.p1_data?.phases?.phase_2c
-    if (!phase2c?.applicants || phase2c.applicants === 0) return 100
-    return Math.round((phase2c.taken / phase2c.applicants) * 100)
+    const p1Data = school.p1_data
+    if (!p1Data?.phases) return 0
+    
+    // Calculate overall success rate from all phases
+    const phases = ['phase_1', 'phase_2a', 'phase_2b', 'phase_2c', 'phase_2c_supp']
+    let totalApplied = 0
+    let totalTaken = 0
+    
+    phases.forEach(phaseKey => {
+      const phase = p1Data.phases[phaseKey]
+      if (phase) {
+        totalApplied += phase.applicants || phase.applied || 0
+        totalTaken += phase.taken || 0
+      }
+    })
+    
+    return totalApplied > 0 ? Math.round((totalTaken / totalApplied) * 100) : 0
   }
 
   const getCompetitivenessLevel = (school) => {
@@ -52,6 +66,8 @@ const SchoolComparison = ({ schools, onBack }) => {
         return { text: 'Moderately Competitive', color: 'bg-yellow-100 text-yellow-700 border border-yellow-200', icon: '🟡' }
       case 'low':
         return { text: 'Less Competitive', color: 'bg-green-100 text-green-700 border border-green-200', icon: '🟢' }
+      case 'very low':
+        return { text: 'Very Low Competition', color: 'bg-emerald-100 text-emerald-700 border border-emerald-200', icon: '🟢' }
       default:
         return { text: 'Unknown', color: 'bg-gray-100 text-gray-700 border border-gray-200', icon: '⚪' }
     }

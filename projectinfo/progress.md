@@ -138,6 +138,102 @@
   - **5km**: "Maximum choice - includes all accessible schools"
 - **Result**: Users can now customize their search radius for optimal school discovery
 
+#### ✅ CRITICAL FIX: Corrected P1 "Taken" Data Logic (July 19, 2025)
+- **User Report**: "the data in our database seems wrong, for example this Nan Hua primary school phase 2A data, vancancis 73, and taken 1 means 1 application need to ballots from 30 applications residence outside 2km, the other 72 vancancis all taken by the applications within 2km, now our taken showing 1 only"
+- **Critical Issue**: Database logic was incorrectly calculating "taken" values for balloted phases
+- **Root Cause**: When balloting occurred, code only counted `vacancies_for_ballot` as "taken", missing students who got places without balloting
+- **Example Problem**:
+  - **WRONG**: Nan Hua Phase 2A showing "taken: 1" (only balloting winners)
+  - **CORRECT**: Should show "taken: 73" (all vacancies filled = 72 within 2km + 1 via ballot)
+- **Fix Applied**:
+  - **Updated Logic**: `sg_school_backend/src/models/user.py` line 89
+  - **OLD**: `result['taken'] = balloting_details.get('vacancies_for_ballot', result['vacancies'])`
+  - **NEW**: `result['taken'] = result['vacancies']` (when balloting = all spots filled)
+  - **Re-migrated Data**: All 39 schools updated with correct logic
+- **Technical Understanding**:
+  - **Balloting occurs** when phase is oversubscribed (applicants > vacancies)
+  - **ALL vacancies get filled** (taken = total vacancies)
+  - **Balloting is just the METHOD** to decide WHO gets specific spots, not the total count
+- **Impact**: Success rates, competitiveness analysis, and comparison data now accurate
+- **Result**: P1 data now correctly shows total students who received places in each phase
+
+#### ✅ CRITICAL FIX: Complete School Dataset Migration (July 19, 2025)
+- **User Report**: "some school data seems gone?"
+- **Root Cause**: Migration script was using incomplete data file with only 39 schools instead of complete dataset
+- **Problem Identified**:
+  - **WRONG SOURCE**: `p1_2024_complete_data.json` (56KB, only 39 schools)
+  - **CORRECT SOURCE**: `extracted_p1_school_data.json` (165KB, 180 schools)
+  - **Missing Schools**: Nan Hua Primary School and 141 other real Singapore primary schools
+- **Migration Script Updates**:
+  - **Updated Path**: Changed from `src/database/p1_2024_complete_data.json` to `../extracted_p1_school_data.json`
+  - **Fixed Data Structure**: Updated parsing from object format `{"schools": {}}` to array format `{"schools": []}`
+  - **Enhanced Field Mapping**: Handle `phase_2c_supplementary` vs `phase_2c_supp` field name differences
+  - **Auto-Calculate Fields**: Generate `school_key`, calculate `balloted` status from phase data
+  - **Improved Compatibility**: Support both `total_vacancy` and `total_vacancies` field names
+- **Results**:
+  - **Database Size**: Increased from 39 to **180 schools** ✅
+  - **Data Completeness**: Now includes Nan Hua Primary School and other missing schools ✅
+  - **Coverage**: Represents realistic Singapore primary school landscape ✅
+  - **P1 Analytics**: All schools now have comprehensive phase-by-phase data ✅
+- **Verification**: Nan Hua Primary School confirmed present with complete P1 phase data
+- **Result**: Application now provides comprehensive coverage of Singapore primary schools with accurate P1 registration data
+
+#### ✅ Fixed Competitiveness Level Calculation (July 19, 2025)
+- **User Question**: "why the unknown for the competency level"
+- **Issue**: All schools showing "Unknown" competitiveness tier after migration
+- **Root Cause**: Updated migration script wasn't calculating competitiveness scores from P1 data
+- **Solution Applied**:
+  - **Added Calculation Functions**: `calculate_competitiveness_score()` and `get_competitiveness_tier()`
+  - **Weighted Scoring System**:
+    - **Phase 2C**: 50% weight (most competitive indicator)
+    - **Phase 2B**: 30% weight (medium indicator)  
+    - **Phase 2A**: 20% weight (lower indicator)
+  - **Tier Classification**:
+    - **Very High**: Score ≥ 2.0 (very oversubscribed)
+    - **High**: Score ≥ 1.5 (highly competitive)
+    - **Medium**: Score ≥ 1.2 (moderately competitive)
+    - **Low**: Score ≥ 0.8 (slightly competitive)
+    - **Very Low**: Score < 0.8 (undersubscribed)
+- **Updated Migration Logic**:
+  - **Calculate Score**: Based on applicant-to-vacancy ratios across phases
+  - **Set Tier**: Automatically classify based on calculated score
+  - **Store Metrics**: Save detailed competitiveness metadata in JSON format
+- **Results Examples**:
+  - **Ai Tong School**: Very High (highly sought after)
+  - **Admiralty Primary**: Medium (moderately competitive)
+  - **Ahmad Ibrahim Primary**: Very Low (many vacancies available)
+- **Result**: All 180 schools now display accurate competitiveness levels based on real P1 data analysis
+
+#### ✅ Fixed Frontend Competitiveness Display Bug (July 19, 2025)
+- **User Report**: "so its frontend display issue? now still show unknown?"
+- **Root Cause**: Frontend missing case for "very low" competitiveness tier
+- **Investigation**: API correctly returns competitiveness data (e.g., "Very Low"), but frontend display function was incomplete
+- **Bug Details**:
+  - **API Returns**: "Very Low" → **Frontend Converts**: "very low" (toLowerCase)
+  - **Frontend Cases**: Only had 'very high', 'high', 'medium', 'low' - **Missing** 'very low'
+  - **Result**: Fell back to 'default' case showing "Unknown"
+- **Fix Applied**:
+  - **SchoolResults.jsx**: Added `case 'very low'` to `getCompetitivenessDisplay()` function
+  - **SchoolComparison.jsx**: Added `case 'very low'` to `getCompetitivenessDisplay()` function  
+  - **Display**: "Very Low Competition" with emerald-green styling
+- **Testing**: Verified API returns correct data, frontend now maps all 5 tiers properly
+- **Result**: All competitiveness levels now display correctly - no more "Unknown" for valid schools
+
+#### ✅ Fixed Inconsistent Success Rate Calculations (July 19, 2025)
+- **User Report**: "why the success rate showing different value?"
+- **Bug Found**: Main card showing different success rate than P1 Analytics
+  - **Main Card**: 100% (only calculated Phase 2C data)
+  - **P1 Analytics**: 94% (calculated from all phases - correct)
+- **Root Cause**: `getSuccessRate()` function in both SchoolResults.jsx and SchoolComparison.jsx only used Phase 2C data
+- **Example (Queenstown Primary)**:
+  - **Wrong Calculation**: Phase 2C only: 26 taken / 26 applied = 100%
+  - **Correct Calculation**: All phases: 148 taken / 158 applied = 94%
+- **Fix Applied**:
+  - **SchoolResults.jsx**: Updated `getSuccessRate()` to calculate from all phases (1, 2A, 2B, 2C, 2C Supp)
+  - **SchoolComparison.jsx**: Updated `getSuccessRate()` to use same overall calculation
+  - **Logic**: `totalTaken / totalApplied * 100` across all phases
+- **Result**: Both main card and P1 Analytics now show consistent success rates
+
 #### ✅ Feature Cards Redesign (July 19, 2025)
 - **User Request**: Remove non-functional "Learn more" links and redesign the 4 feature cards to match current clean, modern style
 - **Implementation**: Complete feature cards transformation:
