@@ -26,7 +26,7 @@ def call_deepseek_api(messages):
             'model': 'deepseek-chat',
             'messages': messages,
             'temperature': 0.7,
-            'max_tokens': 1000
+            'max_tokens': 2500  # Increased for more detailed responses
         }
         
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=60)
@@ -42,9 +42,9 @@ def call_deepseek_api(messages):
 def generate_strategy_prompt(user_data, schools_data):
     """Generate a comprehensive prompt for DeepSeek API"""
     prompt = f"""
-You are an expert consultant for Singapore Primary 1 (P1) school registration. Based on the following information, provide a detailed and actionable strategy for maximizing the chances of getting into the desired primary schools.
+You are a senior education consultant specializing in Singapore Primary 1 (P1) school registration with 15+ years of experience helping families navigate the complex MOE registration system. Provide an in-depth, actionable strategy with specific references and detailed analysis.
 
-User Information:
+CONTEXT & USER PROFILE:
 - Current Address: {user_data.get('address', 'Not provided')}
 - Target Schools: {', '.join(user_data.get('target_schools', []))}
 - Family Situation:
@@ -53,55 +53,157 @@ User Information:
   - Willing to volunteer: {user_data.get('willing_to_volunteer', False)}
   - Can relocate: {user_data.get('can_relocate', False)}
 - Priority factors: {', '.join(user_data.get('priorities', []))}
-- Timeline: Planning to apply in {user_data.get('application_year', '2025')}
+- Application Year: {user_data.get('application_year', '2025')}
 
-School Data Analysis:
-"""
+DETAILED SCHOOL ANALYSIS:
+Based on 2024 P1 registration data and historical trends:"""
     
     for school in schools_data:
         p1_data = school.get('p1_data', {})
         
         # Check if real P1 data is available
         if p1_data.get('data_available', True):  # Default to True for backward compatibility
+            phase_2c = p1_data.get('phases', {}).get('phase_2c', {})
+            applied = phase_2c.get('applied', 0) or phase_2c.get('applicants', 0)
+            taken = phase_2c.get('taken', 0)
+            success_rate = round((taken / applied * 100), 1) if applied > 0 else 0
+            
             prompt += f"""
-{school['name']}:
-- Distance from user: {school.get('distance', 'Unknown')} km
-- P1 Data (2024):
-  - Total Vacancy: {p1_data.get('total_vacancy', 'Unknown')}
-  - Balloted: {p1_data.get('balloted', 'Unknown')}
-  - Phase 2C Applied/Taken: {p1_data.get('phases', {}).get('phase_2c', {}).get('applied', 'Unknown')}/{p1_data.get('phases', {}).get('phase_2c', {}).get('taken', 'Unknown')}
-  - Competitiveness: {p1_data.get('competitiveness_tier', 'Unknown')}
+
+### {school['name']}
+**Location & Accessibility:**
+- Distance from your address: {school.get('distance', 'Unknown')} km
+- Address: {school.get('address', 'Unknown')}
+- Contact: {school.get('phone', 'Check school website')} | Website: {school.get('website', 'Search on MOE SchoolFinder')}
+
+**P1 2024 Registration Analysis:**
+- Total P1 Vacancy: {p1_data.get('total_vacancy', 'Unknown')}
+- Balloting Status: {'✓ BALLOTED' if p1_data.get('balloted') else '✓ NON-BALLOTED'}
+- Competitiveness Level: {p1_data.get('competitiveness_tier', 'Unknown')}
+- Phase 2C Statistics: {applied} applied → {taken} accepted (Success Rate: {success_rate}%)
+- Distance Priority: {'Phase 2C Priority 1 (within 1km)' if school.get('distance', 999) <= 1 else 'Phase 2C Priority 2 (1-2km)' if school.get('distance', 999) <= 2 else 'Phase 2C Priority 3+ (beyond 2km)'}
+
+**Strategic Assessment:**
+{'HIGH RISK - Balloted school with very competitive entry. Requires strategic planning.' if p1_data.get('balloted') else 'MODERATE RISK - Non-balloted school but still competitive.'}
 """
         else:
             # No real P1 data available
             prompt += f"""
-{school['name']}:
-- Distance from user: {school.get('distance', 'Unknown')} km
-- P1 Data (2024): ❌ No data available in our database
-- Note: {p1_data.get('message', 'P1 data not available for this school')}
-- Strategy: Consider as backup option or research manually
+
+### {school['name']}
+**Location & Accessibility:**
+- Distance from your address: {school.get('distance', 'Unknown')} km
+- Address: {school.get('address', 'Unknown')}
+
+**P1 Data Status:**
+❌ **No 2024 data available** - {p1_data.get('message', 'P1 data not available for this school')}
+**Recommendation:** Research manually on MOE SchoolFinder or contact school directly for historical data.
 """
     
     prompt += """
-Please provide:
-1. Overall Assessment: Analyze the competitiveness of each target school
-2. Recommended Strategy: Specific phase-by-phase approach for each school
-3. Timeline: Key dates and actions to take before and during registration
-4. Backup Options: Alternative schools to consider
-5. Relocation Advice: If beneficial, suggest optimal areas to move to
-6. Volunteer Opportunities: How to maximize Phase 2B eligibility
-7. Risk Mitigation: What to do if primary choices don't work out
 
-FORMATTING INSTRUCTIONS:
-- Use clear markdown headings (## for main sections, ### for subsections)
-- Use bullet points (-) for lists, not complex tables
-- Keep tables simple with only 2-3 columns maximum
-- For timelines, use simple bullet point format instead of complex tables
-- Make content scannable and easy to read on mobile devices
-- Bold important text sparingly
-- Use clear, concise language
+## REQUIRED COMPREHENSIVE ANALYSIS
 
-Be specific about Singapore's P1 registration phases and requirements.
+Provide an in-depth, actionable strategy addressing ALL of the following areas with specific details and reference links:
+
+### 1. EXECUTIVE SUMMARY & RISK ASSESSMENT
+- Overall competitiveness ranking of target schools (with specific percentages and statistics)
+- Success probability for each school based on user's profile
+- Primary recommended school with detailed justification
+- Key risk factors and mitigation strategies
+
+### 2. DETAILED PHASE-BY-PHASE STRATEGY
+For each registration phase, provide:
+
+**Phase 1 (Siblings):**
+- Eligibility analysis based on user's sibling status
+- Required documentation checklist
+- Reference: https://www.moe.gov.sg/primary/p1-registration/how-to-register
+
+**Phase 2A (Alumni/Staff/School Advisory/Management Committee):**
+- Specific opportunities for each target school
+- Alumni verification process and required documents
+- School committee membership pathways with contact information
+- Timeline for joining committees (minimum service periods)
+
+**Phase 2B (Parent Volunteer/Grassroots/Church/Clan):**
+- Specific volunteer opportunities at each target school
+- Required 40-hour volunteer commitment details
+- Contact persons and departments for volunteering
+- Grassroots organization opportunities in relevant constituencies
+- Religious organization pathways if applicable
+
+**Phase 2C (Distance-based):**
+- Detailed distance priority analysis
+- Specific address recommendations for relocation (if applicable)
+- Balloting mechanics and tie-breaking procedures
+
+### 3. PRECISE TIMELINE WITH SPECIFIC DATES
+Provide exact dates for 2025 registration:
+- **March 2025:** Phase 1 registration dates
+- **April 2025:** Phase 2A registration dates  
+- **May 2025:** Phase 2B registration dates
+- **June 2025:** Phase 2C registration dates
+- **Pre-registration actions:** Volunteer sign-up deadlines, committee membership applications
+- **Post-registration:** Appeal processes and deadlines
+
+### 4. RELOCATION STRATEGY (If Beneficial)
+- Specific postal codes and neighborhoods within 1km/2km of target schools
+- Property market analysis and rental vs. purchase recommendations
+- Timing for address changes (minimum residency requirements)
+- Required documentation for address verification
+
+### 5. BACKUP SCHOOL ANALYSIS
+- 3-5 alternative schools with similar profiles
+- Less competitive options within acceptable distance
+- Last-resort schools with typically available places
+- Contact information and registration procedures
+
+### 6. DETAILED VOLUNTEER OPPORTUNITIES
+For each target school, provide:
+- Specific volunteer positions available
+- Contact person names and email addresses (if available)
+- Required commitment hours and schedules
+- Application deadlines and procedures
+
+### 7. FINANCIAL CONSIDERATIONS
+- School fees and additional costs for each school
+- Financial assistance schemes available
+- Enrichment programs and their costs
+
+### 8. REFERENCE LINKS & RESOURCES
+Include specific URLs for:
+- MOE P1 Registration Portal: https://www.p1.moe.edu.sg/
+- MOE School Information Service: https://www.moe.gov.sg/schoolfinder
+- Each target school's official website
+- Relevant grassroots organizations
+- P1 Registration Guide: https://www.moe.gov.sg/primary/p1-registration
+
+### 9. RISK MITIGATION & CONTINGENCY PLANS
+- What to do if Phase 2B volunteering is rejected
+- Appeal process if rejected from preferred schools
+- Late registration procedures
+- Transfer possibilities after admission
+
+### 10. ACTION CHECKLIST
+Provide a prioritized action list with specific deadlines for immediate implementation.
+
+**CRITICAL REQUIREMENTS:**
+- Be extremely specific with names, contact information, and procedures
+- Include actual reference links where they exist
+- Provide quantitative analysis (percentages, success rates, distances)
+- Give actionable steps with clear deadlines
+- Address the user's specific family situation and priorities
+- Include phone numbers and email addresses where available
+- Reference specific MOE policies and procedures
+- Mention relevant parliamentary constituency information for grassroots volunteering
+
+**FORMATTING:**
+- Use markdown headers (## and ###)
+- Bold important deadlines and contact information
+- Use bullet points for lists
+- Keep content scannable but comprehensive
+- Include clickable reference links
 """
     
     return prompt
@@ -136,8 +238,8 @@ def generate_strategy():
     # Call DeepSeek API
     messages = [
         {
-            "role": "system",
-            "content": "You are an expert consultant for Singapore Primary 1 school registration with deep knowledge of the MOE registration process, phases, and strategies for success."
+            "role": "system", 
+            "content": "You are a senior education consultant specializing in Singapore Primary 1 (P1) school registration with 15+ years of experience. You have extensive knowledge of MOE policies, school-specific procedures, volunteer opportunities, grassroots organizations, and successful admission strategies. You provide detailed, actionable advice with specific references, contact information, and quantitative analysis. Your expertise includes understanding balloting mechanics, distance priorities, relocation strategies, and risk mitigation plans. Always provide specific reference links, contact details, and concrete action steps with deadlines."
         },
         {
             "role": "user",
@@ -159,43 +261,87 @@ def generate_strategy():
 
 def generate_fallback_strategy(user_data, schools_data):
     """Generate a basic fallback strategy if DeepSeek API is unavailable"""
+    target_schools = ', '.join(user_data.get('target_schools', []))
+    
     strategy = f"""
-# P1 Registration Strategy for {user_data.get('application_year', '2025')}
+# Comprehensive P1 Registration Strategy for {user_data.get('application_year', '2025')}
 
-## Overall Assessment
-Based on your target schools: {', '.join(user_data.get('target_schools', []))}, here's a preliminary strategy:
+## Executive Summary
+**Target Schools:** {target_schools}
+**Current Address:** {user_data.get('address', 'Not provided')}
+**Strategy Priority:** Multi-phase approach with Phase 2B volunteering as primary focus
 
-## Recommended Approach
+⚠️ **Note:** This is a basic strategy. For detailed AI-generated analysis with specific contact information and personalized recommendations, please ensure your internet connection is stable and try again.
 
-### Phase 1 (Siblings)
-- Only applicable if you have children already in the target schools
-- Guaranteed placement if eligible
+## Phase-by-Phase Strategy
 
-### Phase 2A (Alumni/School Committee)
-- Check if you're eligible as an alumni of target schools
-- Consider joining School Advisory Committee if possible
+### Phase 1 (Siblings Priority)
+**Eligibility:** {'✓ Eligible' if user_data.get('has_siblings') else '❌ Not Eligible - No siblings in target schools'}
+- **Action Required:** {'Submit application with sibling documentation' if user_data.get('has_siblings') else 'Skip to Phase 2A preparation'}
+- **Success Rate:** {'~99% if eligible' if user_data.get('has_siblings') else 'N/A'}
 
-### Phase 2B (Volunteer/Community)
-- Start volunteering at target schools immediately
-- Minimum 40 hours of volunteer service required
-- Apply early as volunteer positions are limited
+### Phase 2A (Alumni/Staff/Committee)
+**Current Status:** {'✓ Alumni Connection' if user_data.get('is_alumni') else '❌ No Alumni Status'}
+- **Immediate Actions:**
+  - Contact target school general offices to inquire about School Advisory Committee positions
+  - Research parent volunteer coordinator roles available
+  - **Reference:** [MOE P1 Registration Guide](https://www.moe.gov.sg/primary/p1-registration)
 
-### Phase 2C (General Registration)
-- This is the most competitive phase
-- Distance from school is crucial (1km vs 2km priority)
-- Consider relocation if within budget and timeline
+### Phase 2B (Community Volunteer)
+**User Commitment:** {'✓ Willing to Volunteer' if user_data.get('willing_to_volunteer') else '⚠️ Volunteer Participation Uncertain'}
+- **Critical Requirements:**
+  - **40 hours minimum volunteer service** by June 30, 2024 (for 2025 registration)
+  - Must be registered volunteer BEFORE volunteer work begins
+  - Documentation required: Certificate of volunteer hours
+- **Volunteer Opportunities:**
+  - School-based: Library assistance, event support, administrative help
+  - Community: Grassroots organizations in school's constituency
+  - **Contact:** Email target schools directly for volunteer coordinator contact
 
-## Timeline
-- 6-12 months before registration: Start volunteering
-- 3-6 months before: Finalize address (if relocating)
-- Registration period: Apply strategically by phase
+### Phase 2C (Distance-Based)
+**Current Distance Analysis:**"""
+    
+    for school in schools_data:
+        distance = school.get('distance', 'Unknown')
+        strategy += f"""
+- **{school['name']}:** {distance}km ({'Priority 1 (within 1km)' if str(distance).replace('km', '').isdigit() and float(distance) <= 1 else 'Priority 2 (1-2km)' if str(distance).replace('km', '').isdigit() and float(distance) <= 2 else 'Priority 3+ (beyond 2km)'})"""
+    
+    strategy += f"""
 
-## Backup Options
-- Consider less popular schools in your area
-- Look into schools with higher vacancy rates
-- Have multiple options ready for each phase
+## Critical Timeline for 2025 Registration
+- **Now - March 2024:** Begin volunteer applications and committee inquiries
+- **April - June 2024:** Complete 40-hour volunteer requirement
+- **June 30, 2024:** Final deadline for volunteer hour completion
+- **March 2025:** Phase 1 Registration
+- **April 2025:** Phase 2A Registration  
+- **May 2025:** Phase 2B Registration
+- **June 2025:** Phase 2C Registration
 
-Note: This is a basic strategy. For detailed analysis, please ensure DeepSeek API is properly configured.
+## Relocation Strategy
+{'**Recommended:** Consider relocation for distance priority' if user_data.get('can_relocate') else '**Not Applicable:** User indicated unwillingness to relocate'}
+
+## Essential Reference Links
+- **MOE P1 Registration Portal:** https://www.p1.moe.edu.sg/
+- **School Information Service:** https://www.moe.gov.sg/schoolfinder  
+- **Registration Process Guide:** https://www.moe.gov.sg/primary/p1-registration/how-to-register
+- **Volunteer Requirements:** Contact individual school general offices
+- **Appeal Process:** https://www.moe.gov.sg/primary/p1-registration/results
+
+## Immediate Action Items
+1. **Contact target schools** for volunteer coordinator information
+2. **Research grassroots organizations** in relevant constituencies  
+3. **Verify residential address** for distance calculations
+4. **Prepare required documents** (birth certificate, passport, etc.)
+5. **Set up MOE digital account** at https://www.p1.moe.edu.sg/
+
+## Risk Mitigation
+- **Backup Schools:** Research 3-5 less competitive schools within acceptable distance
+- **Multiple Volunteer Paths:** Apply for both school-based and community volunteering
+- **Documentation:** Keep detailed records of all volunteer hours and activities
+- **Appeal Preparation:** Understand appeal process timeline and requirements
+
+---
+*For more detailed, personalized strategy with specific contact information and success probability analysis, please try generating the AI strategy again when your connection is stable.*
 """
     return strategy
 
