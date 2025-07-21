@@ -1,7 +1,7 @@
 import React from 'react'
-import { ArrowLeft, School, BarChart3, Users, Compass, MapPin } from 'lucide-react'
+import { ArrowLeft, School, BarChart3, Users, Compass, MapPin, ClipboardList, Search } from 'lucide-react'
 
-const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsCount, onShowComparison }) => {
+const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsCount, onShowComparison, onNavigateTo }) => {
   const getViewTitle = () => {
     switch (currentView) {
       case 'landing':
@@ -12,6 +12,10 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
         return 'AI Strategy'
       case 'comparison':
         return 'School Comparison'
+      case 'p1-flow':
+        return 'P1 Registration Flow'
+      case 'school-search':
+        return 'School Directory'
       default:
         return 'SG School Finder'
     }
@@ -24,6 +28,10 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
       case 'strategy':
       case 'comparison':
         return onBackToResults
+      case 'p1-flow':
+        return () => onNavigateTo('landing')
+      case 'school-search':
+        return () => onNavigateTo('landing')
       default:
         return null
     }
@@ -39,10 +47,20 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
         return <Users className="h-4 w-4" />
       case 'comparison':
         return <BarChart3 className="h-4 w-4" />
+      case 'p1-flow':
+        return <ClipboardList className="h-4 w-4" />
+      case 'school-search':
+        return <Search className="h-4 w-4" />
       default:
         return <School className="h-4 w-4" />
     }
   }
+
+  const navigationTabs = [
+    { id: 'landing', label: 'Find Schools', icon: School },
+    { id: 'school-search', label: 'School Directory', icon: Search },
+    { id: 'p1-flow', label: 'P1 Registration Guide', icon: ClipboardList }
+  ]
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-slate-200/60 backdrop-blur-xl">
@@ -72,6 +90,29 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="hidden md:flex items-center space-x-2">
+            {navigationTabs.map((tab) => {
+              const IconComponent = tab.icon
+              const isActive = currentView === tab.id || (tab.id === 'landing' && ['results', 'strategy', 'comparison'].includes(currentView))
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onNavigateTo(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-blue-100 text-blue-700 font-medium' 
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <span className="text-sm">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Right section */}
@@ -107,7 +148,7 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
         </div>
 
         {/* Enhanced Breadcrumb */}
-        {currentView !== 'landing' && (
+        {currentView !== 'landing' && currentView !== 'p1-flow' && (
           <div className="pb-6">
             <nav className="flex items-center space-x-3 text-sm" aria-label="Breadcrumb">
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 rounded-lg">

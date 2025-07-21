@@ -482,3 +482,242 @@ def get_school_by_key(school_key):
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
+@schools_bp.route('/search-by-name', methods=['GET'])
+def search_schools_by_name():
+    """Search schools by name with autocomplete suggestions"""
+    query = request.args.get('query', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    
+    if not query:
+        return jsonify({'suggestions': [], 'total': 0})
+    
+    if len(query) < 2:
+        return jsonify({'suggestions': [], 'total': 0, 'message': 'Query too short, minimum 2 characters'})
+    
+    try:
+        # Search in database first (most relevant)
+        db_suggestions = []
+        db_schools = School.query.filter(School.name.ilike(f'%{query}%')).limit(limit).all()
+        
+        for school in db_schools:
+            db_suggestions.append({
+                'id': school.school_key,
+                'name': school.name,
+                'source': 'database',
+                'has_p1_data': True,
+                'year': school.year,
+                'competitiveness_tier': school.competitiveness_tier,
+                'total_vacancy': school.total_vacancy,
+                'balloted': school.balloted
+            })
+        
+        # If we have enough suggestions from database, return them
+        if len(db_suggestions) >= limit:
+            return jsonify({
+                'suggestions': db_suggestions[:limit],
+                'total': len(db_suggestions),
+                'query': query
+            })
+        
+        # Otherwise, supplement with government API data
+        try:
+            gov_schools = get_schools_data()
+            gov_suggestions = []
+            
+            query_lower = query.lower()
+            for school in gov_schools:
+                school_name = school.get('name', '')
+                if query_lower in school_name.lower():
+                    # Check if we already have this school from database
+                    already_included = any(db_school['name'].lower() == school_name.lower() 
+                                         for db_school in db_suggestions)
+                    
+                    if not already_included:
+                        gov_suggestions.append({
+                            'id': school_name.lower().replace(' ', '_').replace('-', '_'),
+                            'name': school_name,
+                            'source': 'government',
+                            'has_p1_data': False,
+                            'address': school.get('address', ''),
+                            'phone': school.get('phone', ''),
+                            'email': school.get('email', '')
+                        })
+            
+            # Sort government suggestions by relevance (exact match first, then starts with, then contains)
+            def sort_relevance(item):
+                name_lower = item['name'].lower()
+                if name_lower == query_lower:
+                    return 0  # Exact match
+                elif name_lower.startswith(query_lower):
+                    return 1  # Starts with query
+                else:
+                    return 2  # Contains query
+            
+            gov_suggestions.sort(key=sort_relevance)
+            
+            # Combine results (database first, then government)
+            all_suggestions = db_suggestions + gov_suggestions
+            
+            return jsonify({
+                'suggestions': all_suggestions[:limit],
+                'total': len(all_suggestions),
+                'query': query,
+                'database_matches': len(db_suggestions),
+                'government_matches': len(gov_suggestions)
+            })
+            
+        except Exception as e:
+            print(f"Error fetching government data: {e}")
+            # Return only database results if government API fails
+            return jsonify({
+                'suggestions': db_suggestions,
+                'total': len(db_suggestions),
+                'query': query,
+                'note': 'Limited to database results due to external API error'
+            })
+    
+    except Exception as e:
+        return jsonify({'error': f'Search error: {str(e)}'}), 500
+
+@schools_bp.route('/school-detail/<path:school_name>', methods=['GET'])
+def get_school_detail(school_name):
+    """Get comprehensive school details including P1 data, contact info, and analysis"""
+    try:
+        # Decode URL-encoded school name
+        school_name = school_name.replace('%20', ' ')
+        
+        # Try to find in database first
+        db_school = School.query.filter(School.name.ilike(school_name)).first()
+        
+        if db_school:
+            # Found in database - return comprehensive data
+            school_detail = {
+                'basic_info': {
+                    'name': db_school.name,
+                    'school_key': db_school.school_key,
+                    'year': db_school.year,
+                    'source': 'database',
+                    'has_comprehensive_data': True
+                },
+                'p1_data': {
+                    'total_vacancy': db_school.total_vacancy,
+                    'balloted': db_school.balloted,
+                    'competitiveness_score': db_school.overall_competitiveness_score,
+                    'competitiveness_tier': db_school.competitiveness_tier,
+                    'phases': {
+                        'phase_1': db_school.get_phase_data('phase_1'),
+                        'phase_2a': db_school.get_phase_data('phase_2a'),
+                        'phase_2b': db_school.get_phase_data('phase_2b'),
+                        'phase_2c': db_school.get_phase_data('phase_2c'),
+                        'phase_2c_supp': db_school.get_phase_data('phase_2c_supp'),
+                        'phase_3': db_school.get_phase_data('phase_3'),
+                    }
+                },
+                'analysis': {
+                    'overall_success_rate': db_school.calculate_overall_success_rate(),
+                    'most_competitive_phase': db_school.get_most_competitive_phase(),
+                    'recommendation': db_school.get_strategy_recommendation()
+                }
+            }
+            
+            # Try to get additional contact info from government API
+            try:
+                gov_schools = get_schools_data()
+                db_school_name_lower = db_school.name.lower()
+                
+                # First try exact match
+                for gov_school in gov_schools:
+                    if gov_school['name'].lower() == db_school_name_lower:
+                        school_detail['contact_info'] = {
+                            'address': gov_school.get('address', 'Not available'),
+                            'postal_code': gov_school.get('postal_code', 'Not available'),
+                            'phone': gov_school.get('phone', 'Not available'),
+                            'email': gov_school.get('email', 'Not available'),
+                            'website': gov_school.get('website', 'Not available'),
+                            'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                            'bus_desc': gov_school.get('bus_desc', 'Not available')
+                        }
+                        break
+                else:
+                    # If no exact match, try enhanced fuzzy matching
+                    db_words = [word for word in db_school_name_lower.replace('(', '').replace(')', '').split() 
+                               if len(word) >= 3 and word not in ['school', 'primary']]
+                    
+                    if len(db_words) >= 2:  # Only try fuzzy match if we have significant words
+                        for gov_school in gov_schools:
+                            gov_name_lower = gov_school['name'].lower()
+                            # Require at least 80% of significant words to match
+                            matches = sum(1 for word in db_words if word in gov_name_lower)
+                            match_ratio = matches / len(db_words)
+                            
+                            if match_ratio >= 0.8:  # 80% match required
+                                school_detail['contact_info'] = {
+                                    'address': gov_school.get('address', 'Not available'),
+                                    'postal_code': gov_school.get('postal_code', 'Not available'),
+                                    'phone': gov_school.get('phone', 'Not available'),
+                                    'email': gov_school.get('email', 'Not available'),
+                                    'website': gov_school.get('website', 'Not available'),
+                                    'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                                    'bus_desc': gov_school.get('bus_desc', 'Not available')
+                                }
+                                break
+                        else:
+                            # No good match found
+                            school_detail['contact_info'] = {
+                                'message': 'Contact information not available - no matching school found in government database'
+                            }
+                    else:
+                        school_detail['contact_info'] = {
+                            'message': 'Contact information not available - insufficient data for matching'
+                        }
+            except:
+                school_detail['contact_info'] = {
+                    'message': 'Contact information could not be retrieved'
+                }
+                
+            return jsonify(school_detail)
+        
+        else:
+            # Not in database - try to find in government API
+            try:
+                gov_schools = get_schools_data()
+                for gov_school in gov_schools:
+                    if gov_school['name'].lower() == school_name.lower():
+                        school_detail = {
+                            'basic_info': {
+                                'name': gov_school['name'],
+                                'source': 'government',
+                                'has_comprehensive_data': False
+                            },
+                            'contact_info': {
+                                'address': gov_school.get('address', 'Not available'),
+                                'postal_code': gov_school.get('postal_code', 'Not available'),
+                                'phone': gov_school.get('phone', 'Not available'),
+                                'email': gov_school.get('email', 'Not available'),
+                                'website': gov_school.get('website', 'Not available'),
+                                'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                                'bus_desc': gov_school.get('bus_desc', 'Not available')
+                            },
+                            'p1_data': {
+                                'message': 'P1 registration data not available for this school',
+                                'suggestion': 'This school may not participate in the standard P1 registration process, or data may not be available yet.'
+                            }
+                        }
+                        return jsonify(school_detail)
+                
+                # School not found anywhere
+                return jsonify({
+                    'error': 'School not found',
+                    'message': f'No school found with name: {school_name}',
+                    'suggestion': 'Please check the school name spelling or try searching with partial name'
+                }), 404
+                
+            except Exception as e:
+                return jsonify({
+                    'error': 'Error retrieving school data',
+                    'message': str(e)
+                }), 500
+    
+    except Exception as e:
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+

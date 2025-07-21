@@ -6,6 +6,8 @@ import SchoolResults from './components/SchoolResults'
 import SchoolComparison from './components/SchoolComparison'
 import StrategyView from './components/StrategyView'
 import P1DataChart from './components/P1DataChart'
+import P1RegistrationFlow from './components/P1RegistrationFlow'
+import SchoolSearchView from './components/SchoolSearchView'
 import { Sparkles, Stars, Crown, Zap } from 'lucide-react'
 
 const App = () => {
@@ -61,6 +63,15 @@ const App = () => {
     setSelectedSchools([])
   }
 
+  const handleNavigateTo = (view) => {
+    setCurrentView(view)
+    if (view === 'landing') {
+      setSearchResults(null)
+      setSelectedSchools([])
+      setComparisonSchools([])
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
@@ -69,6 +80,7 @@ const App = () => {
         onBackToResults={handleBackToResults}
         selectedSchoolsCount={selectedSchools.length}
         onShowComparison={handleShowComparison}
+        onNavigateTo={handleNavigateTo}
       />
       
       {/* Main Content */}
@@ -77,7 +89,7 @@ const App = () => {
           <div className="animate-fade-in">
             {/* Clean Hero Section */}
             <div className="container-narrow pt-16 pb-8 relative">
-              <div className="text-center space-y-8">
+              <div className="text-center space-y-8 px-4">
                 {/* AI Badge */}
                 <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
                   <Sparkles className="h-4 w-4 text-white" />
@@ -85,7 +97,7 @@ const App = () => {
                 </div>
 
                 {/* Main Title */}
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                   <span className="text-gray-900">Find Your Perfect </span>
                   <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                     Primary School
@@ -112,6 +124,18 @@ const App = () => {
             <div className="container-narrow py-16">
               <LandingPage />
             </div>
+          </div>
+        )}
+
+        {currentView === 'p1-flow' && (
+          <div className="animate-fade-in">
+            <P1RegistrationFlow />
+          </div>
+        )}
+
+        {currentView === 'school-search' && (
+          <div className="animate-fade-in">
+            <SchoolSearchView />
           </div>
         )}
 

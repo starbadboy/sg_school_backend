@@ -218,3 +218,57 @@ class School(db.Model):
                     most_competitive = phase_name
         
         return most_competitive
+
+    def get_most_competitive_phase(self):
+        """Get the most competitive phase for this school"""
+        try:
+            phases_data = json.loads(self.phases_data) if isinstance(self.phases_data, str) else self.phases_data
+            return self._get_most_competitive_phase(phases_data)
+        except:
+            return "Unknown"
+
+    def calculate_overall_success_rate(self):
+        """Calculate overall success rate across all phases"""
+        try:
+            phases_data = json.loads(self.phases_data) if isinstance(self.phases_data, str) else self.phases_data
+            
+            total_applicants = 0
+            total_taken = 0
+            
+            for phase_name, phase_data in phases_data.items():
+                applicants = phase_data.get('applicants', 0)
+                taken = phase_data.get('taken', 0)
+                
+                total_applicants += applicants
+                total_taken += taken
+            
+            if total_applicants > 0:
+                return (total_taken / total_applicants) * 100
+            return 0
+        except:
+            return 0
+
+    def get_strategy_recommendation(self):
+        """Generate strategic recommendation based on school data"""
+        try:
+            competitiveness = self.competitiveness_tier.lower() if self.competitiveness_tier else 'unknown'
+            success_rate = self.calculate_overall_success_rate()
+            balloted = self.balloted
+            
+            if competitiveness == 'very high':
+                return "Highly competitive school. Consider applying in earlier phases if eligible, or have backup options ready."
+            elif competitiveness == 'high':
+                return "Competitive school. Early phase application recommended if possible. Prepare for potential balloting."
+            elif competitiveness == 'medium':
+                if balloted:
+                    return "Moderately competitive with some balloting. Good chances in later phases if earlier phases don't work out."
+                else:
+                    return "Balanced competitiveness. Multiple phases available for application."
+            elif competitiveness == 'low':
+                return "Lower competition levels. Good chances across multiple phases."
+            elif competitiveness == 'very low':
+                return "Excellent availability. Multiple opportunities to secure placement."
+            else:
+                return "Contact school directly for most current information about availability and requirements."
+        except:
+            return "Strategic analysis not available for this school."
