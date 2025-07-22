@@ -64,6 +64,7 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 ### **Database Auto-Initialization** ✨ **NEW**:
 - ✅ **Automatic P1 data loading** when database is empty
 - ✅ **No manual migration required** - works on fresh deployments
+- ✅ **Flask-SQLAlchemy context handling** - properly initializes within app context
 - ✅ **Finds data files automatically** from multiple locations:
   - `extracted_p1_school_data.json` (root directory)
   - `p1_2024_complete_data.json` (database folder)
@@ -112,6 +113,7 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - **Multiple data sources** - tries different P1 data files
 - **Production-ready** - happens automatically on every fresh deployment
 - **No manual steps** - works out of the box
+- **Context-aware** - properly handles Flask-SQLAlchemy initialization
 
 ### **Build Process Optimization:**
 - **Vite builds directly** to Flask static folder
@@ -121,8 +123,15 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 ### **Monitoring Your Deployment:**
 1. **Build Logs**: Check if frontend/backend build successfully
 2. **Runtime Logs**: Monitor Flask application startup and database initialization
-3. **Metrics**: Track CPU/memory usage in Railway dashboard
-4. **Database Status**: Look for "✅ Database initialization complete!" in logs
+3. **Database Status**: Look for these success messages:
+   ```
+   🔍 Checking database initialization...
+   ✓ Found P1 data: extracted_p1_school_data.json (180 schools)
+   📊 Populating database with 180 schools...
+   ✅ Database initialization complete!
+   📊 Added 180 schools | Total schools: 180 | Balloted: 85
+   ```
+4. **Metrics**: Track CPU/memory usage in Railway dashboard
 5. **AI Status**: Verify Deepseek API key is configured correctly
 
 ### **Auto-Deployment:**
@@ -144,11 +153,17 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - No more `dist` folder copying errors
 - Build process matches Railway nixpacks configuration
 
-### **Database is Empty After Deployment:** ✅ **FIXED**
+### **Database Initialization Errors:** ✅ **FIXED**
+- ✅ **Flask-SQLAlchemy context error resolved** - imports moved inside function
 - ✅ **Auto-initialization added** - database populates automatically
 - Check Railway logs for database initialization messages
 - Verify P1 data files are included in repository
 - Look for "🔍 Checking database initialization..." in startup logs
+
+### **SQLAlchemy Context Errors:** ✅ **FIXED**
+- **Previous error**: "The current Flask app is not registered with this 'SQLAlchemy' instance"
+- **Solution**: Database imports now happen within Flask app context
+- **Prevention**: Proper Flask-SQLAlchemy initialization sequence
 
 ### **AI Strategy Generation Not Working:**
 - ❗ **Check Deepseek API key** is set correctly in Railway Variables
