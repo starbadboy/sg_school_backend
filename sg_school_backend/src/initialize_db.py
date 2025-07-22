@@ -5,7 +5,6 @@ Automatically populates database with P1 data if empty
 """
 import json
 import os
-from models.user import db, School
 
 def normalize_school_key(school_name):
     """Convert school name to normalized key"""
@@ -62,6 +61,9 @@ def get_competitiveness_tier(score):
 def initialize_database_if_empty():
     """Initialize database with P1 data if it's empty"""
     try:
+        # Import here to ensure Flask app context is available
+        from models.user import db, School
+        
         # Check if database already has data
         school_count = School.query.count()
         if school_count > 0:
@@ -73,6 +75,8 @@ def initialize_database_if_empty():
         # Find the P1 data file - try multiple locations
         data_file_paths = [
             os.path.join(os.path.dirname(__file__), '..', '..', 'extracted_p1_school_data.json'),
+            os.path.join(os.path.dirname(__file__), 'database', 'p1_2024_complete_data.json'),
+            os.path.join(os.path.dirname(__file__), 'database', 'p1_2024_data.json')
         ]
         
         data = None
@@ -171,5 +175,10 @@ def initialize_database_if_empty():
         
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
-        db.session.rollback()
+        # Import here to avoid circular import issues
+        try:
+            from models.user import db
+            db.session.rollback()
+        except:
+            pass
         return False 
