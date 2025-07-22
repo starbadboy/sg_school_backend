@@ -58,12 +58,14 @@ def get_competitiveness_tier(score):
     else:
         return "Unknown"
 
-def initialize_database_if_empty():
-    """Initialize database with P1 data if it's empty"""
+def initialize_database_if_empty(db, School):
+    """Initialize database with P1 data if it's empty
+    
+    Args:
+        db: SQLAlchemy database instance
+        School: School model class
+    """
     try:
-        # Import here to ensure Flask app context is available
-        from models.user import db, School
-        
         # Check if database already has data
         school_count = School.query.count()
         if school_count > 0:
@@ -175,9 +177,7 @@ def initialize_database_if_empty():
         
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
-        # Import here to avoid circular import issues
         try:
-            from models.user import db
             db.session.rollback()
         except:
             pass

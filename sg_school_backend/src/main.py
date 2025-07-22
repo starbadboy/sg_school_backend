@@ -10,7 +10,7 @@ load_dotenv()
 from flask import Flask, send_from_directory, Response
 from flask_cors import CORS
 import mimetypes
-from src.models.user import db
+from src.models.user import db, School
 from src.routes.user import user_bp
 from src.routes.schools import schools_bp
 from src.routes.strategy import strategy_bp
@@ -41,7 +41,7 @@ with app.app_context():
     db.create_all()
     # Auto-initialize database with P1 data if empty (for production deployment)
     print("🔍 Checking database initialization...")
-    initialize_database_if_empty()
+    initialize_database_if_empty(db, School)
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
