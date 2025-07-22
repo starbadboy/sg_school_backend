@@ -14,6 +14,7 @@ from src.models.user import db
 from src.routes.user import user_bp
 from src.routes.schools import schools_bp
 from src.routes.strategy import strategy_bp
+from src.initialize_db import initialize_database_if_empty
 
 # Ensure proper MIME types are registered
 mimetypes.add_type('application/javascript', '.js')
@@ -38,6 +39,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    # Auto-initialize database with P1 data if empty (for production deployment)
+    print("🔍 Checking database initialization...")
+    initialize_database_if_empty()
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
