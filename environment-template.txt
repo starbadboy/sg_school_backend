@@ -1,0 +1,13 @@
+# Production Environment Variables for Railway/Render/Other Hosting
+# Copy these to your hosting platform's environment variables section
+
+FLASK_ENV=production
+SECRET_KEY=your-super-secure-secret-key-here-change-this
+PORT=8080
+
+# Optional: Database URL (if using external database in future)
+# DATABASE_URL=sqlite:///database/app.db
+
+# Optional: API Keys (if needed for external services)  
+# ONEMAP_API_KEY=your-onemap-api-key
+# DATA_GOV_SG_API_KEY=your-data-gov-sg-api-key 

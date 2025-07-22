@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ['nodejs', 'python310']
+
+[phases.install]
+cmds = [
+    'cd sg-school-frontend && npm ci',
+    'cd sg_school_backend && pip install -r requirements.txt'
+]
+
+[phases.build]
+cmds = [
+    'cd sg-school-frontend && npm run build',
+    'cp -r sg-school-frontend/dist/* sg_school_backend/src/static/'
+]
+
+[start]
+cmd = 'cd sg_school_backend && python src/main.py' 
