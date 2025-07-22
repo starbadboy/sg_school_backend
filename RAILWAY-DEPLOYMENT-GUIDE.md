@@ -27,7 +27,10 @@ In your Railway project dashboard:
 FLASK_ENV=production
 SECRET_KEY=sg-school-finder-secure-key-2024
 PORT=8080
+DEEPSEEK_API_KEY=your-deepseek-api-key-here
 ```
+
+⚠️ **IMPORTANT**: Get your Deepseek API key from [platform.deepseek.com](https://platform.deepseek.com) - **required for AI strategy generation feature!**
 
 ### 4. **Deploy & Monitor**
 - Railway will **automatically redeploy** when it detects the GitHub push
@@ -66,6 +69,12 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
   - `p1_2024_complete_data.json` (database folder)
   - `p1_2024_data.json` (database folder)
 
+### **AI Strategy Generation** 🤖:
+- ✅ **Deepseek API integration** for intelligent P1 admission strategies
+- ✅ **Environment-based configuration** - uses `DEEPSEEK_API_KEY`
+- ✅ **Graceful fallback** - provides basic strategies if API unavailable
+- ✅ **Production-ready** - secure API key handling
+
 ### **Vite Configuration** (vite.config.js):
 - ✅ Builds **directly to Flask static folder** (`../sg_school_backend/src/static`)
 - ✅ No manual file copying needed
@@ -90,6 +99,13 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - `FLASK_ENV=production` → Disables debug mode, improves performance
 - `SECRET_KEY` → Use a strong, unique key for sessions
 - `PORT=8080` → Railway's default port (auto-assigned)
+- `DEEPSEEK_API_KEY` → **REQUIRED** for AI strategy generation (get from [platform.deepseek.com](https://platform.deepseek.com))
+
+### **AI Features Configuration:**
+- **Strategy generation** requires valid Deepseek API key
+- **Fallback system** provides basic strategies if API fails
+- **Rate limiting** handled automatically by Deepseek service
+- **Error handling** ensures app continues working without AI features
 
 ### **Database Auto-Population:**
 - **Smart detection** - only populates if database is empty
@@ -107,6 +123,7 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 2. **Runtime Logs**: Monitor Flask application startup and database initialization
 3. **Metrics**: Track CPU/memory usage in Railway dashboard
 4. **Database Status**: Look for "✅ Database initialization complete!" in logs
+5. **AI Status**: Verify Deepseek API key is configured correctly
 
 ### **Auto-Deployment:**
 - Every `git push` to main branch triggers automatic deployment
@@ -133,6 +150,12 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - Verify P1 data files are included in repository
 - Look for "🔍 Checking database initialization..." in startup logs
 
+### **AI Strategy Generation Not Working:**
+- ❗ **Check Deepseek API key** is set correctly in Railway Variables
+- Verify API key is valid at [platform.deepseek.com](https://platform.deepseek.com)
+- Check Railway logs for API-related errors
+- App will still work with basic fallback strategies if API fails
+
 ### **App Starts but Frontend Not Loading:**
 - Check that frontend build completed successfully
 - Verify Vite build outputs to `sg_school_backend/src/static/`
@@ -158,9 +181,17 @@ Before deploying to Railway:
 - [ ] Frontend builds without errors (check for index.html in static folder)
 - [ ] Backend dependencies install correctly
 - [ ] nixpacks.toml is in repository root
-- [ ] Environment variables configured in Railway
+- [ ] Environment variables configured in Railway (**including DEEPSEEK_API_KEY**)
 - [ ] P1 data files are in repository (auto-detected)
 - [ ] Code pushed to GitHub main branch
+
+### **Required Environment Variables:**
+```
+✅ FLASK_ENV=production
+✅ SECRET_KEY=your-secret-key
+✅ PORT=8080
+✅ DEEPSEEK_API_KEY=your-deepseek-api-key  ← REQUIRED for AI features!
+```
 
 ### **Expected Timeline:**
 - **Build Time**: 2-3 minutes
@@ -176,7 +207,8 @@ Once deployed successfully:
 1. **Test your live app** at the Railway URL
 2. **Verify all features work** (school search, P1 flow, etc.)
 3. **Check database population**: School search should return results
-4. **Share your live Singapore School Finder** with users!
+4. **Test AI strategy generation**: Verify Deepseek API integration works
+5. **Share your live Singapore School Finder** with users!
 
 ### **Expected Database Status:**
 - **180+ schools** with P1 data automatically loaded
@@ -184,4 +216,10 @@ Once deployed successfully:
 - **Success rates** and competitiveness analysis
 - **All features working** without manual setup
 
-**🌟 Your Railway deployment is production-ready with automatic database initialization!** 
+### **Expected AI Features:**
+- **Smart admission strategies** generated via Deepseek API
+- **Personalized recommendations** based on school preferences
+- **Fallback strategies** if API temporarily unavailable
+- **Complete P1 registration guidance**
+
+**🌟 Your Railway deployment is production-ready with automatic database initialization and AI strategy generation!** 

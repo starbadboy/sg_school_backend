@@ -5,6 +5,9 @@ FLASK_ENV=production
 SECRET_KEY=your-super-secure-secret-key-here-change-this
 PORT=8080
 
+# AI Services - REQUIRED for Strategy Generation
+DEEPSEEK_API_KEY=your-deepseek-api-key-here
+
 # Optional: Database URL (if using external database in future)
 # DATABASE_URL=sqlite:///database/app.db
 
