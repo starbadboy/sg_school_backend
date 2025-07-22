@@ -21,9 +21,8 @@ RUN cd sg_school_backend && pip install --no-cache-dir -r requirements.txt
 # Copy source code
 COPY . .
 
-# Build frontend and copy to backend static folder
+# Build frontend (Vite builds directly to sg_school_backend/src/static/)
 RUN cd sg-school-frontend && npm run build
-RUN cp -r sg-school-frontend/dist/* sg_school_backend/src/static/
 
 # Expose port
 EXPOSE 8080

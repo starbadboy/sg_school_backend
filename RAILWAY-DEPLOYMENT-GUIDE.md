@@ -63,6 +63,11 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - ✅ No manual file copying needed
 - ✅ Optimized build process for Railway
 
+### **Dockerfile** (For alternative deployments):
+- ✅ **FIXED** - No longer tries to copy from non-existent `dist` folder
+- ✅ Works with Vite's direct build output
+- ✅ Compatible with Docker-based platforms (Fly.io, DigitalOcean, etc.)
+
 ### **Flask Production Settings** (main.py):
 - ✅ Reads `PORT` from environment variables
 - ✅ Switches debug mode based on `FLASK_ENV`
@@ -100,6 +105,11 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - Ensure `nixpacks.toml` is in repository root
 - Check that both frontend and backend directories exist
 - Verify package.json and requirements.txt are present
+
+### **Docker Build Fails with "No such file or directory":**
+- ✅ **FIXED** - Dockerfile updated to work with Vite direct build
+- No more `dist` folder copying errors
+- Build process matches Railway nixpacks configuration
 
 ### **App Starts but Frontend Not Loading:**
 - Check that frontend build completed successfully
