@@ -158,15 +158,7 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
               </div>
             )}
 
-            {/* Status indicators */}
-            <div className="flex items-center space-x-4">
-              {(currentView === 'results' || currentView === 'rankings') && (
-                <div className="status-indicator status-success">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="hidden sm:inline">Live Data</span>
-                </div>
-              )}
-            </div>
+
           </div>
         </div>
 
