@@ -313,7 +313,55 @@ const SchoolRanking = () => {
 
                 {/* Rankings Table */}
                 <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-                    <div className="overflow-x-auto">
+                    {/* Mobile Card View - Hidden on Desktop */}
+                    <div className="md:hidden">
+                        {filteredRankings.map((school) => (
+                            <div key={school.school_key || school.name} className="border-b border-gray-200 p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center">
+                                        <div className={`text-lg font-bold mr-3 ${school.rank <= 10 ? 'text-yellow-600' : school.rank <= 25 ? 'text-orange-600' : 'text-gray-600'}`}>
+                                            #{school.rank}
+                                        </div>
+                                        {school.rank <= 3 && (
+                                            <Award className={`h-5 w-5 ${school.rank === 1 ? 'text-yellow-400' : school.rank === 2 ? 'text-gray-400' : 'text-amber-600'}`} />
+                                        )}
+                                    </div>
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(school.competitiveness_tier)}`}>
+                                        {school.competitiveness_tier || 'Unknown'}
+                                    </span>
+                                </div>
+                                
+                                <h4 className="font-semibold text-gray-900 mb-1">{school.name}</h4>
+                                <p className="text-sm text-gray-600 mb-3">Total Vacancy: {school.total_vacancy}</p>
+                                
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div className="bg-blue-50 p-2 rounded">
+                                        <div className="text-blue-600 font-medium">{school.vacancies_2c || 'N/A'}</div>
+                                        <div className="text-blue-500 text-xs">Available Places</div>
+                                    </div>
+                                    <div className="bg-orange-50 p-2 rounded">
+                                        <div className="text-orange-600 font-medium">{school.applicants_2c || 'N/A'}</div>
+                                        <div className="text-orange-500 text-xs">Total Applicants</div>
+                                    </div>
+                                    <div className="bg-purple-50 p-2 rounded">
+                                        <div className={`font-medium ${getRatioColor(school.ratio_2c)}`}>
+                                            {getRatioDisplay(school.ratio_2c)}
+                                        </div>
+                                        <div className="text-purple-500 text-xs">Applicants per spot</div>
+                                    </div>
+                                    <div className="bg-gray-50 p-2 rounded">
+                                        <div className={`font-medium ${school.balloted ? 'text-red-600' : 'text-green-600'}`}>
+                                            {school.balloted ? 'Yes' : 'No'}
+                                        </div>
+                                        <div className="text-gray-500 text-xs">Balloting</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Desktop Table View - Hidden on Mobile */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>

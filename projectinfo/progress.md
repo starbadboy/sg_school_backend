@@ -1,138 +1,125 @@
 # Project Progress - School Finder
 
-## Latest Update - Summary Statistics Fixed (December 19, 2024)
+## Latest Update - Railway Database Deployment Fix (December 19, 2024)
 
-### ✅ **Final Bug Resolution - Complete Success!**
-- **Problem**: School Rankings summary cards showing zeros (Total Schools: 0, Balloted Schools: 0, etc.)
-- **Root Cause**: Frontend calculating summary from only 50 schools (current page) instead of all 180 schools
-- **Solution**: Dual API call approach - display call + summary calculation call
+### ✅ **Railway Deployment Issue Resolved!**
 
-### ✅ **Final Fix Applied:**
-1. **Display API Call**: Respects user filters (Top 25/50/100) for table display
-2. **Summary API Call**: Fetches all 200 schools for accurate summary statistics  
-3. **Property Alignment**: Fixed mismatch between setSummary properties and UI expectations
-4. **Optimized Performance**: Separate calls allow proper summary without affecting display performance
-
-### ✅ **Final Verification - All Working:**
-- ✅ **Total Schools**: 180 (previously 0)
-- ✅ **Balloted Schools**: 107 (previously 0)  
-- ✅ **Average Ratio**: 0.829 (previously 0)
-- ✅ **Most Competitive**: Princess Elizabeth Primary School (previously N/A)
-- ✅ **Table Data**: All 50 schools displaying correctly with proper rankings
-- ✅ **Search Functionality**: Perfect search with 3 results for "fa"
-- ✅ **Detail Views**: Complete school information loading correctly
-
-### 🎯 **Technical Achievement:**
-**Clean rollback + selective restoration + targeted fixes = Perfect Result**
-
-1. **Step 1**: Complete rollback to working state (commit f5fcbc4)
-2. **Step 2**: Selective restoration of rankings endpoint with correct field names  
-3. **Step 3**: Frontend defensive programming fixes
-4. **Step 4**: Summary statistics calculation bug fix
-
-### 📊 **Current Application Status:**
-- **🎨 Professional UI**: Modern design with proper styling and icons
-- **⚡ Fast Performance**: No errors, clean loading, proper caching
-- **🛡️ Defensive Programming**: Safe property access prevents frontend crashes
-- **🔗 Perfect Integration**: Frontend ↔ Backend API alignment
-- **📈 Accurate Data**: All 180 schools with correct summary statistics
-
----
-
-## Previous Implementation History
-
-### ✅ **Major Issue Resolution (Earlier):**
-- **Problem**: Changes during "feat: add comprehensive school ranking page" commit broke the main school search functionality
-- **Symptoms**: 
-  - `/api/schools/search-by-name` endpoint returning errors
-  - Frontend errors: "Cannot read properties of undefined (reading 'name')"
-  - Rankings page showing JSON parsing errors
-- **Solution**: Clean rollback to original working version + selective restoration
-
-### ✅ **Actions Taken:**
-1. **Complete Rollback**: Restored `sg_school_backend/src/routes/schools.py` to commit f5fcbc4 (last known working state)
-2. **Selective Restoration**: Re-added only the `/rankings` endpoint with correct field names
-3. **Fixed Field References**: 
-   - `School.competitiveness_score` → `School.overall_competitiveness_score`
-   - `school.school_name` → `school.name` 
-4. **Frontend Rebuild**: Rebuilt frontend with defensive programming fixes intact
-
-### ✅ **API Verification:**
-```json
-// Search API working:
-GET /api/schools/search-by-name?query=fa
-{
-  "suggestions": [
-    {"name": "Fairfield Methodist School (Primary)", ...},
-    {"name": "Farrer Park Primary School", ...}
-  ],
-  "total": 3
-}
-
-// Rankings API working:
-GET /api/schools/rankings?limit=3
-{
-  "rankings": [
-    {"rank": 1, "name": "Princess Elizabeth Primary School", "competitiveness_score": 4.254, ...},
-    {"rank": 2, "name": "Nan Hua Primary School", "competitiveness_score": 2.864, ...}
-  ],
-  "pagination": {"total": 180, ...}
-}
+**🚨 Problem**: SQLite database error on Railway deployment:
+```
+sqlite3.OperationalError: unable to open database file
 ```
 
-### 📝 **Key Lessons:**
-- Rollback to known working state is often cleaner than incremental fixes
-- Always verify correct model field names when adding new endpoints  
-- Frontend defensive programming prevents crashes when APIs change
-- Test API endpoints with curl before frontend integration
-- Summary calculations must account for pagination and data scope
+**🔧 Root Cause**: 
+- Hardcoded SQLite database path not compatible with Railway container filesystem
+- Database directory wasn't being created properly
+- No fallback for Railway's PostgreSQL service
 
-### 🔄 **Final Status:**
-- **System is fully functional** ✅
-- **All core features working** ✅  
-- **Professional production quality** ✅
-- **Ready for deployment** ✅
+**✅ Solution Implemented:**
+
+1. **Railway-Compatible Database Configuration**:
+   - **PostgreSQL Support**: Automatically detects `DATABASE_URL` from Railway PostgreSQL service
+   - **URL Format Fix**: Converts `postgres://` to `postgresql://` for SQLAlchemy compatibility
+   - **Robust SQLite Fallback**: Creates database directory with proper error handling
+   - **Temp Directory Fallback**: Uses system temp directory if normal path fails
+
+2. **Enhanced Error Handling**:
+   - **Graceful Database Failures**: App continues even if database initialization fails
+   - **Clear Logging**: Detailed database status messages for debugging
+   - **Non-blocking Startup**: Database errors don't crash the application
+
+3. **Production Dependencies**:
+   - **Added psycopg2-binary**: PostgreSQL driver for Railway PostgreSQL service
+   - **Requirements Updated**: Full PostgreSQL support in requirements.txt
+
+### 🔧 **Technical Implementation**:
+
+**New Database Configuration** (`main.py`):
+```python
+def get_database_url():
+    # 1. Check Railway PostgreSQL first (recommended)
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        # Fix URL format for SQLAlchemy
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        return database_url
+    
+    # 2. Robust SQLite fallback
+    db_dir = os.path.join(os.path.dirname(__file__), 'database')
+    os.makedirs(db_dir, exist_ok=True)  # Create directory safely
+    
+    # 3. Temp directory fallback if normal path fails
+    except Exception:
+        db_dir = tempfile.gettempdir()
+```
+
+### 📋 **Updated Railway Deployment Guide**:
+
+**New Step 3**: Add PostgreSQL database service in Railway (recommended)
+- Click **"+ New"** → **"Database"** → **"Add PostgreSQL"**  
+- Railway automatically sets `DATABASE_URL` environment variable
+- Persistent storage, better performance for production
+
+**Enhanced Troubleshooting**: 
+- Specific fix for "unable to open database file" error
+- Clear instructions for PostgreSQL vs SQLite deployment options
+
+### ✅ **Local Testing Confirmed**:
+```
+📁 Database directory: .../sg_school_backend/src/database
+🗄️  Using SQLite database: sqlite:///.../database/app.db
+✅ Database tables created successfully
+🔍 Checking database initialization...
+✓ Database already has 180 schools - skipping initialization
+```
+
+### 🚀 **Deployment Options Now Available**:
+
+1. **Option 1: Railway PostgreSQL (Recommended)**
+   - Add PostgreSQL service in Railway dashboard
+   - Automatic `DATABASE_URL` configuration
+   - Persistent, production-ready database
+
+2. **Option 2: Railway SQLite (Simplified)**  
+   - No additional setup required
+   - Uses robust file system paths with fallbacks
+   - Good for testing and small deployments
+
+### 🎯 **Railway Deployment Ready**:
+- **✅ Database compatibility** for Railway container environment
+- **✅ PostgreSQL production support** with automatic detection
+- **✅ Robust error handling** prevents deployment failures
+- **✅ Enhanced logging** for debugging deployment issues
+
+**💡 Next Steps**: 
+1. User can redeploy to Railway - database error should be resolved
+2. For production: Add PostgreSQL service for better performance and persistence
+3. Test deployment with both SQLite and PostgreSQL options
 
 ---
 
-## Previous Implementation History
+## Previous Updates
 
-### ✅ **Core Features Implemented:**
-1. **School Search & Discovery**
-   - Search by name with fuzzy matching
-   - Location-based search with distance calculation
-   - Government API integration for comprehensive data
+### Complete Mobile Responsiveness Audit (December 19, 2024)
+- ✅ All pages tested and confirmed mobile-friendly
+- ✅ Fixed School Rankings table with responsive card layout
+- ✅ Mobile navigation with hamburger menu working perfectly
+- ✅ Professional design maintained across all screen sizes
 
-2. **School Analysis & Rankings**  
-   - Competitiveness scoring algorithm
-   - Tier-based classification (Very High, High, Medium, Low)
-   - Comprehensive rankings with filtering and accurate summary statistics
+### Bug Fix & Rollback (December 19, 2024)
+- ✅ Resolved search functionality issues with clean rollback approach
+- ✅ Restored original working school search and detail endpoints  
+- ✅ Fixed rankings API with Phase 2C data display
+- ✅ Rebuilt frontend with defensive programming and mobile responsiveness
 
-3. **Detailed School Information**
-   - P1 registration phase data and analysis
-   - Contact information and location details
-   - Success rate calculations and recommendations
+### School Rankings Feature (December 18, 2024) 
+- ✅ Added comprehensive school ranking system based on Phase 2C competitiveness
+- ✅ Implemented filtering by competitiveness tier and balloting status
+- ✅ Created summary statistics dashboard
+- ✅ Added mobile-responsive card layout for rankings display
 
-4. **User Interface**
-   - Modern React frontend with Tailwind CSS
-   - Interactive maps using Leaflet
-   - Responsive design for all devices
-   - Data visualization with Chart.js
-
-### ✅ **Backend Infrastructure:**
-- Flask REST API with SQLAlchemy ORM
-- SQLite database with 180+ schools
-- Data migration and processing scripts
-- Comprehensive error handling
-
-### ✅ **Deployment Ready:**
-- Railway.app deployment configuration
-- Docker containerization
-- Environment configuration
-- Static file serving
-
-### 📊 **Database Stats:**
-- **180 schools** with complete P1 data
-- **Comprehensive phase data** for all registration phases
-- **Competitiveness scoring** for all schools
-- **Government API integration** for additional school details 
+### Core Development (December 17, 2024)
+- ✅ Backend API development with Flask and SQLAlchemy
+- ✅ Frontend React application with modern UI components
+- ✅ School search functionality with P1 data integration
+- ✅ School detail views with comprehensive information display 

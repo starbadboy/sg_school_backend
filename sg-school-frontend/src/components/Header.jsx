@@ -1,7 +1,13 @@
-import React from 'react'
-import { ArrowLeft, School, BarChart3, Users, Compass, MapPin, ClipboardList, Search, Award } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ArrowLeft, School, BarChart3, Users, Compass, MapPin, ClipboardList, Search, Award, Menu, X } from 'lucide-react'
 
 const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsCount, onShowComparison, onNavigateTo }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when view changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [currentView]);
   const getViewTitle = () => {
     switch (currentView) {
       case 'landing':
@@ -99,7 +105,7 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
             </div>
           </div>
 
-          {/* Navigation Tabs */}
+          {/* Desktop Navigation Tabs */}
           <div className="hidden md:flex items-center space-x-2">
             {navigationTabs.map((tab) => {
               const IconComponent = tab.icon
@@ -120,6 +126,16 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
                 </button>
               )
             })}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
 
           {/* Right section */}
@@ -153,6 +169,45 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <>
+            {/* Overlay to close menu when clicking outside */}
+            <div 
+              className="md:hidden fixed inset-0 bg-black bg-opacity-20 z-40"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-200 shadow-lg backdrop-blur-xl z-50">
+              <div className="container-app py-4">
+                <div className="grid grid-cols-1 gap-2">
+                  {navigationTabs.map((tab) => {
+                    const IconComponent = tab.icon
+                    const isActive = currentView === tab.id || (tab.id === 'landing' && ['results', 'strategy', 'comparison'].includes(currentView))
+                    
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          onNavigateTo(tab.id)
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                          isActive 
+                            ? 'bg-blue-100 text-blue-700 font-medium' 
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                        <span className="font-medium">{tab.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Enhanced Breadcrumb */}
         {currentView !== 'landing' && currentView !== 'p1-flow' && (

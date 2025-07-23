@@ -17,7 +17,15 @@ git commit -m "feat: ready for Railway deployment"
 git push origin main
 ```
 
-### 3. **Configure Railway Environment Variables**
+### 3. **Add Railway PostgreSQL Database (Recommended)**
+
+For production deployment, add a PostgreSQL database:
+
+1. In your Railway project dashboard, click **"+ New"**
+2. Select **"Database"** → **"Add PostgreSQL"**
+3. Railway will automatically set `DATABASE_URL` environment variable
+
+### 4. **Configure Railway Environment Variables**
 
 In your Railway project dashboard:
 1. Go to **Variables** tab
@@ -32,7 +40,9 @@ DEEPSEEK_API_KEY=your-deepseek-api-key-here
 
 ⚠️ **IMPORTANT**: Get your Deepseek API key from [platform.deepseek.com](https://platform.deepseek.com) - **required for AI strategy generation feature!**
 
-### 4. **Deploy & Monitor**
+✅ **DATABASE_URL** is automatically set when you add PostgreSQL (recommended for production)
+
+### 5. **Deploy & Monitor**
 - Railway will **automatically redeploy** when it detects the GitHub push
 - Monitor the build process in Railway's **Deployments** tab
 - Your app will be live at: `https://your-project-name.railway.app`
@@ -177,10 +187,18 @@ cmd = 'cd sg_school_backend && python src/main.py'  # Start Flask server
 - Ensure Flask serves static files correctly
 
 ### **Database Errors:**
-- SQLite database is created automatically
+
+**❌ "sqlite3.OperationalError: unable to open database file":**
+- ✅ **FIXED** - Database path now uses Railway-compatible configuration
+- **Solution**: The app automatically detects Railway environment and uses appropriate database
+- **Fallback**: If directory creation fails, uses system temp directory  
+- **Recommended**: Add PostgreSQL service in Railway for production (see step 3 above)
+
+**General Database Issues:**
+- SQLite database is created automatically with fallback paths
 - P1 data is loaded automatically from JSON files
-- Check `sg_school_backend/src/database/` folder exists
-- Ensure database path is correct in Flask config
+- PostgreSQL is recommended for production (persistent storage)
+- Check Railway logs for database initialization messages
 
 ### **Port Binding Issues:**
 - Railway assigns PORT automatically

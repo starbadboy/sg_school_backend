@@ -33,15 +33,57 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(schools_bp, url_prefix='/api/schools')
 app.register_blueprint(strategy_bp, url_prefix='/api/strategy')
 
-# uncomment if you need to use database
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+# Database configuration with Railway deployment support
+def get_database_url():
+    """Get database URL with Railway deployment support"""
+    # Check for Railway PostgreSQL database URL first (recommended for production)
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        # Fix PostgreSQL URL format for SQLAlchemy compatibility
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        print(f"🔗 Using Railway DATABASE_URL (PostgreSQL): {database_url[:50]}...")
+        return database_url
+    
+    # Fallback to SQLite for local development and Railway with file system
+    db_dir = os.path.join(os.path.dirname(__file__), 'database')
+    db_path = os.path.join(db_dir, 'app.db')
+    
+    # Create database directory if it doesn't exist
+    try:
+        os.makedirs(db_dir, exist_ok=True)
+        print(f"📁 Database directory: {db_dir}")
+    except Exception as e:
+        print(f"⚠️  Could not create database directory: {e}")
+        # Try using a writable temporary location
+        import tempfile
+        db_dir = tempfile.gettempdir()
+        db_path = os.path.join(db_dir, 'sg_school_app.db')
+        print(f"📁 Using temporary database: {db_path}")
+    
+    sqlite_url = f"sqlite:///{db_path}"
+    print(f"🗄️  Using SQLite database: {sqlite_url}")
+    return sqlite_url
+
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+# Initialize database within app context
 with app.app_context():
-    db.create_all()
-    # Auto-initialize database with P1 data if empty (for production deployment)
-    print("🔍 Checking database initialization...")
-    initialize_database_if_empty(db, School)
+    try:
+        db.create_all()
+        print("✅ Database tables created successfully")
+        
+        # Auto-initialize database with P1 data if empty (for production deployment)
+        print("🔍 Checking database initialization...")
+        initialize_database_if_empty(db, School)
+        
+    except Exception as e:
+        print(f"❌ Database initialization error: {e}")
+        print("💡 Consider using Railway's PostgreSQL service for production")
+        # Don't fail the app startup - let it continue without database
+        pass
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
