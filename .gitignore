@@ -272,9 +272,11 @@ extracted_*.csv
 scraped_*.csv
 
 # Large P1 data files (keep sample data, ignore large extracts)
-p1_*_complete_data.json
 p1_extracted_*.json
 full_school_dataset_*.json
+
+# Essential P1 data for deployment (allow specific files)
+!sg_school_backend/src/database/p1_2024_complete_data.json
 
 # DeepSeek API related files
 deepseek_*.txt
