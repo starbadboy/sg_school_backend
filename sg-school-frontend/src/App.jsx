@@ -8,6 +8,7 @@ import StrategyView from './components/StrategyView'
 import P1DataChart from './components/P1DataChart'
 import P1RegistrationFlow from './components/P1RegistrationFlow'
 import SchoolSearchView from './components/SchoolSearchView'
+import SchoolRanking from './components/SchoolRanking'
 import { Sparkles, Stars, Crown, Zap } from 'lucide-react'
 
 const App = () => {
@@ -136,6 +137,12 @@ const App = () => {
         {currentView === 'school-search' && (
           <div className="animate-fade-in">
             <SchoolSearchView />
+          </div>
+        )}
+
+        {currentView === 'rankings' && (
+          <div className="animate-fade-in">
+            <SchoolRanking />
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, School, BarChart3, Users, Compass, MapPin, ClipboardList, Search } from 'lucide-react'
+import { ArrowLeft, School, BarChart3, Users, Compass, MapPin, ClipboardList, Search, Award } from 'lucide-react'
 
 const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsCount, onShowComparison, onNavigateTo }) => {
   const getViewTitle = () => {
@@ -16,6 +16,8 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
         return 'P1 Registration Flow'
       case 'school-search':
         return 'School Directory'
+      case 'rankings':
+        return 'School Rankings'
       default:
         return 'SG School Finder'
     }
@@ -31,6 +33,8 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
       case 'p1-flow':
         return () => onNavigateTo('landing')
       case 'school-search':
+        return () => onNavigateTo('landing')
+      case 'rankings':
         return () => onNavigateTo('landing')
       default:
         return null
@@ -51,6 +55,8 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
         return <ClipboardList className="h-4 w-4" />
       case 'school-search':
         return <Search className="h-4 w-4" />
+      case 'rankings':
+        return <Award className="h-4 w-4" />
       default:
         return <School className="h-4 w-4" />
     }
@@ -59,6 +65,7 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
   const navigationTabs = [
     { id: 'landing', label: 'Find Schools', icon: School },
     { id: 'school-search', label: 'School Directory', icon: Search },
+    { id: 'rankings', label: 'School Rankings', icon: Award },
     { id: 'p1-flow', label: 'P1 Registration Guide', icon: ClipboardList }
   ]
 
@@ -137,7 +144,7 @@ const Header = ({ currentView, onBackToSearch, onBackToResults, selectedSchoolsC
 
             {/* Status indicators */}
             <div className="flex items-center space-x-4">
-              {currentView === 'results' && (
+              {(currentView === 'results' || currentView === 'rankings') && (
                 <div className="status-indicator status-success">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                   <span className="hidden sm:inline">Live Data</span>
