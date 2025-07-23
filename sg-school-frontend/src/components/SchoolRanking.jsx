@@ -30,8 +30,8 @@ const SchoolRanking = () => {
         try {
             setLoading(true);
             const params = new URLSearchParams();
-            if (tierFilter) params.append('tier', tierFilter);
-            if (ballotedOnlyFilter) params.append('balloted_only', 'true');
+            // Fetch ALL schools and let frontend handle filtering
+            params.append('limit', '200');
             
             const response = await fetch(`/api/schools/rankings?${params}`);
             if (!response.ok) {
@@ -39,8 +39,33 @@ const SchoolRanking = () => {
             }
             
             const data = await response.json();
-            setRankings(data.rankings);
-            setSummary(data.summary);
+            setRankings(data.rankings || []);
+            
+            // Use the same data for summary calculation (no double API call needed)
+            const allSchools = data.rankings || [];
+            const totalSchools = data.pagination?.total || allSchools.length || 0;
+            const tiers = allSchools.reduce((acc, school) => {
+                const tier = school.competitiveness_tier || 'Unknown';
+                acc[tier] = (acc[tier] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const ballotedCount = allSchools.filter(s => s.balloted).length;
+            const averageScore = totalSchools > 0 ? 
+                allSchools.reduce((sum, s) => sum + (s.competitiveness_score || 0), 0) / totalSchools : 0;
+            
+            // Calculate average ratio from Phase 2C data
+            const validRatios = allSchools.filter(s => s.ratio_2c && s.ratio_2c !== Infinity && s.ratio_2c > 0);
+            const averageRatio = validRatios.length > 0 ? 
+                validRatios.reduce((sum, s) => sum + s.ratio_2c, 0) / validRatios.length : 0;
+            
+            setSummary({
+                total_schools: totalSchools,
+                balloted_schools: ballotedCount,
+                average_ratio: Number(averageRatio.toFixed(2)), // Show as ratio (e.g., 2.34)
+                tiers: tiers,
+                most_competitive: allSchools.length > 0 ? allSchools[0] : null
+            });
         } catch (err) {
             setError(err.message);
         } finally {
@@ -54,22 +79,23 @@ const SchoolRanking = () => {
         // Apply search filter
         if (searchQuery) {
             filtered = filtered.filter(school =>
-                school.name.toLowerCase().includes(searchQuery.toLowerCase())
+                school && school.name && school.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
         // Apply tier filter
         if (tierFilter) {
-            filtered = filtered.filter(school => school.competitiveness_tier === tierFilter);
+            filtered = filtered.filter(school => school && school.competitiveness_tier === tierFilter);
         }
 
         // Apply balloted only filter
         if (ballotedOnlyFilter) {
-            filtered = filtered.filter(school => school.balloting_2c);
+            filtered = filtered.filter(school => school && school.balloted);
         }
 
         // Apply sorting
         filtered.sort((a, b) => {
+            if (!a || !b) return 0; // Safety check for undefined objects
             let aValue = a[sortBy];
             let bValue = b[sortBy];
 
@@ -201,8 +227,9 @@ const SchoolRanking = () => {
                         <div className="flex items-center">
                             <BarChart3 className="h-8 w-8 text-green-500 mr-3" />
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Average Ratio</p>
+                                <p className="text-sm font-medium text-gray-600">Average Competition</p>
                                 <p className="text-2xl font-bold text-gray-900">{summary.average_ratio || 0}</p>
+                                <p className="text-xs text-gray-600">Applicants per vacancy</p>
                             </div>
                         </div>
                     </div>
@@ -313,39 +340,41 @@ const SchoolRanking = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                         onClick={() => handleSort('vacancies_2c')}
                                     >
                                         Phase 2C Vacancies
                                     </th>
                                     <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                         onClick={() => handleSort('applicants_2c')}
                                     >
                                         Phase 2C Applicants
                                     </th>
                                     <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                         onClick={() => handleSort('ratio_2c')}
                                     >
-                                        <div className="flex items-center">
+                                        <div className="flex items-center justify-center">
                                             Competitiveness Ratio
                                             {sortBy === 'ratio_2c' && (
                                                 sortOrder === 'asc' ? <TrendingUp className="ml-1 h-4 w-4" /> : <TrendingDown className="ml-1 h-4 w-4" />
                                             )}
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                        onClick={() => handleSort('balloted')}>
                                         Balloting
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                        onClick={() => handleSort('competitiveness_tier')}>
                                         Tier
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredRankings.map((school) => (
-                                    <tr key={school.school_key} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={school.name || school.rank} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className={`text-lg font-bold ${school.rank <= 10 ? 'text-yellow-600' : school.rank <= 25 ? 'text-orange-600' : 'text-gray-600'}`}>
@@ -357,45 +386,47 @@ const SchoolRanking = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">{school.name}</div>
-                                            <div className="text-xs text-gray-500">Total Vacancy: {school.total_vacancy}</div>
+                                            <div className="text-sm font-medium text-gray-900">{school.name || 'Unknown School'}</div>
+                                            <div className="text-xs text-gray-500">Total Vacancy: {school.total_vacancy || 'N/A'}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {school.vacancies_2c || 0}
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="text-lg font-semibold text-blue-600">
+                                                {school.vacancies_2c || 'N/A'}
+                                            </div>
+                                            <div className="text-xs text-gray-500">Available Places</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {school.applicants_2c || 0}
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="text-lg font-semibold text-orange-600">
+                                                {school.applicants_2c || 'N/A'}
+                                            </div>
+                                            <div className="text-xs text-gray-500">Total Applicants</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <div className={`text-lg font-semibold ${getRatioColor(school.ratio_2c)}`}>
                                                 {getRatioDisplay(school.ratio_2c)}
                                             </div>
-                                            {school.ratio_2c > 0 && school.ratio_2c !== Infinity && (
-                                                <div className="text-xs text-gray-500">
-                                                    {school.ratio_2c.toFixed(2)} applicants per spot
-                                                </div>
-                                            )}
+                                            <div className="text-xs text-gray-500">Applicants per spot</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            {school.balloting_2c ? (
-                                                <div className="flex items-center">
-                                                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            {school.balloted ? (
+                                                <div className="flex items-center justify-center">
+                                                    <AlertCircle className="h-4 w-4 text-red-500 mr-1" />
                                                     <span className="text-red-600 font-medium">Yes</span>
-                                                    {school.balloting_code && (
-                                                        <span className="ml-1 text-xs text-gray-500">({school.balloting_code})</span>
-                                                    )}
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center">
-                                                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                                    <span className="text-green-600">No</span>
+                                                <div className="flex items-center justify-center">
+                                                    <div className="h-4 w-4 bg-green-500 rounded-full mr-1"></div>
+                                                    <span className="text-green-600 font-medium">No</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getTierBadgeColor(school.competitiveness_tier)}`}>
                                                 {school.competitiveness_tier || 'Unknown'}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="text-sm text-gray-600">{school.year || '2024'}</div>
                                         </td>
                                     </tr>
                                 ))}

@@ -12,7 +12,7 @@ const SchoolDetailView = ({ selectedSchool, onBack }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (selectedSchool) {
+    if (selectedSchool && selectedSchool.name) {
       fetchSchoolDetail(selectedSchool.name);
     }
   }, [selectedSchool]);

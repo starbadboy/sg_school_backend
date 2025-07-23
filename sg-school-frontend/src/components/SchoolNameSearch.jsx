@@ -94,6 +94,10 @@ const SchoolNameSearch = ({ onSchoolSelect }) => {
   };
 
   const handleSuggestionClick = (suggestion) => {
+    if (!suggestion || !suggestion.name) {
+      console.error('Invalid suggestion object:', suggestion);
+      return;
+    }
     setQuery(suggestion.name);
     setIsOpen(false);
     addToRecentSearches(suggestion.name);
@@ -110,7 +114,9 @@ const SchoolNameSearch = ({ onSchoolSelect }) => {
       
       if (response.ok && data.suggestions && data.suggestions.length > 0) {
         const suggestion = data.suggestions[0];
-        onSchoolSelect(suggestion);
+        if (suggestion && suggestion.name) {
+          onSchoolSelect(suggestion);
+        }
       }
     } catch (error) {
       console.error('Error fetching recent search:', error);
@@ -141,7 +147,7 @@ const SchoolNameSearch = ({ onSchoolSelect }) => {
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && suggestions[selectedIndex] && suggestions[selectedIndex].name) {
           handleSuggestionClick(suggestions[selectedIndex]);
         }
         break;

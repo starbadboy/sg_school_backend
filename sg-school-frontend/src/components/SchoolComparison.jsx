@@ -75,8 +75,8 @@ const SchoolComparison = ({ schools, onBack }) => {
 
   const prepareChartData = () => {
     return schools.map(school => ({
-      name: school.name.split(' ').slice(0, 2).join(' '),
-      fullName: school.name,
+              name: school && school.name ? school.name.split(' ').slice(0, 2).join(' ') : 'Unknown',
+        fullName: school && school.name ? school.name : 'Unknown School',
       distance: school.distance,
       successRate: getSuccessRate(school),
       totalVacancy: school.p1_data?.total_vacancies || 0,

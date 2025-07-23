@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 import math
 import json
 from src.models.user import db, School
-import difflib
 
 schools_bp = Blueprint('schools', __name__)
 
@@ -84,225 +83,299 @@ def get_schools_data():
     
     return []
 
-def find_school_contact_info(school_name):
-    """Find contact information for a school from government data"""
+def load_real_p1_data():
+    """Load real 2024 P1 data from database"""
     try:
-        gov_schools = get_schools_data()
-        school_name_lower = school_name.lower()
-        
-        # First try exact match
-        for gov_school in gov_schools:
-            if gov_school['name'].lower() == school_name_lower:
-                return {
-                    'address': gov_school.get('address', 'Not available'),
-                    'postal_code': gov_school.get('postal_code', 'Not available'),
-                    'phone': gov_school.get('phone', 'Not available'),
-                    'email': gov_school.get('email', 'Not available'),
-                    'website': gov_school.get('website', 'Not available'),
-                    'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
-                    'bus_desc': gov_school.get('bus_desc', 'Not available')
-                }
-        
-        # If no exact match, try enhanced fuzzy matching
-        db_words = [word for word in school_name_lower.replace('(', '').replace(')', '').split() 
-                   if len(word) >= 3 and word not in ['school', 'primary']]
-        
-        if len(db_words) >= 2:  # Only try fuzzy match if we have significant words
-            for gov_school in gov_schools:
-                gov_name_lower = gov_school['name'].lower()
-                # Require at least 80% of significant words to match
-                matches = sum(1 for word in db_words if word in gov_name_lower)
-                match_ratio = matches / len(db_words)
-                
-                if match_ratio >= 0.8:  # 80% match required
-                    return {
-                        'address': gov_school.get('address', 'Not available'),
-                        'postal_code': gov_school.get('postal_code', 'Not available'),
-                        'phone': gov_school.get('phone', 'Not available'),
-                        'email': gov_school.get('email', 'Not available'),
-                        'website': gov_school.get('website', 'Not available'),
-                        'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
-                        'bus_desc': gov_school.get('bus_desc', 'Not available')
-                    }
-        
-        # No good match found
-        return {
-            'message': 'Contact information not available - no matching school found in government database'
-        }
-        
-    except:
-        return {
-            'message': 'Contact information could not be retrieved'
-        }
-
-# SCHOOL RANKINGS API
-@schools_bp.route('/rankings', methods=['GET'])
-def get_school_rankings():
-    """Get school rankings based on Phase 2C applicant-to-vacancy ratio"""
-    try:
-        # Get query parameters
-        tier_filter = request.args.get('tier')  # Filter by competitiveness tier
-        balloted_only = request.args.get('balloted_only', 'false').lower() == 'true'
-        limit = request.args.get('limit', type=int)  # Limit results
-        
-        # Get all schools
-        query = School.query
-        
-        # Apply filters
-        if balloted_only:
-            query = query.filter(School.balloted == True)
-        
-        if tier_filter:
-            query = query.filter(School.competitiveness_tier == tier_filter)
-        
-        schools = query.all()
-        
-        rankings = []
-        
+        schools = School.query.all()
+        schools_dict = {}
         for school in schools:
-            try:
-                # Parse phase data
-                phase_2c_data = json.loads(school.phase_2c_data) if school.phase_2c_data else {}
-                
-                # Calculate Phase 2C ratio (applicants / vacancies)
-                vacancies = phase_2c_data.get('vacancies', 0)
-                applicants = phase_2c_data.get('applicants', 0)
-                
-                # Calculate ratio (handle division by zero)
-                if vacancies > 0 and applicants > 0:
-                    ratio = round(applicants / vacancies, 2)
-                elif applicants > 0 and vacancies == 0:
-                    ratio = float('inf')  # Infinite demand with no spots
-                else:
-                    ratio = 0.0
-                
-                # Get balloting status from phase 2C data
-                balloting_code = phase_2c_data.get('balloting_code', '')
-                has_balloting = phase_2c_data.get('balloting', False) or bool(balloting_code)
-                
-                # Get competitiveness metrics
-                comp_metrics = json.loads(school.competitiveness_metrics) if school.competitiveness_metrics else {}
-                
-                ranking_data = {
-                    'school_key': school.school_key,
-                    'name': school.name,
-                    'vacancies_2c': vacancies,
-                    'applicants_2c': applicants,
-                    'ratio_2c': ratio,
-                    'balloting_2c': has_balloting,
-                    'balloting_code': balloting_code,
-                    'total_vacancy': school.total_vacancy,
-                    'competitiveness_tier': school.competitiveness_tier,
-                    'overall_score': school.overall_competitiveness_score or 0,
-                    'balloted_phases': comp_metrics.get('balloting_phases', []),
-                    'year': school.year
-                }
-                
-                rankings.append(ranking_data)
-                
-            except Exception as e:
-                print(f"Error processing school {school.name}: {e}")
-                continue
-        
-        # Sort by ratio (descending) - higher ratio = more competitive = higher rank
-        def sort_key(school_data):
-            ratio = school_data['ratio_2c']
-            if ratio == float('inf'):
-                return (0, -school_data['applicants_2c'])  # Sort by applicants if infinite
-            elif ratio > 0:
-                return (1, -ratio)  # Negative for descending order
-            else:
-                return (2, -school_data['total_vacancy'])  # Sort by total vacancy for non-competitive schools
-        
-        rankings.sort(key=sort_key)
-        
-        # Add rank positions
-        for i, school in enumerate(rankings, 1):
-            school['rank'] = i
-        
-        # Apply limit if specified
-        if limit:
-            rankings = rankings[:limit]
-        
-        # Calculate summary statistics
-        total_schools = len(rankings)
-        balloted_schools = len([s for s in rankings if s['balloting_2c']])
-        avg_ratio = sum(s['ratio_2c'] for s in rankings if s['ratio_2c'] != float('inf')) / max(1, len([s for s in rankings if s['ratio_2c'] != float('inf')]))
-        
-        return jsonify({
-            'rankings': rankings,
-            'summary': {
-                'total_schools': total_schools,
-                'balloted_schools': balloted_schools,
-                'average_ratio': round(avg_ratio, 2),
-                'most_competitive': rankings[0] if rankings else None,
-                'data_year': 2024
-            }
-        })
-        
+            schools_dict[school.school_key] = school.to_dict()
+        return schools_dict
     except Exception as e:
-        return jsonify({'error': f'Failed to get rankings: {str(e)}'}), 500
+        print(f"Error loading real P1 data from database: {e}")
+        return {}
 
-# SCHOOL SEARCH APIs
-@schools_bp.route('/search', methods=['GET'])
-def search_schools():
-    """Search schools by name with auto-suggestions"""
+def extract_p1_data_for_school(school_name, year=2024):
+    """Extract real P1 data for a specific school from database with improved fuzzy matching"""
     try:
-        query = request.args.get('q', '').strip()
-        limit = request.args.get('limit', 10, type=int)
-        
-        if not query:
-            return jsonify({'schools': []})
-        
-        # Get all schools for fuzzy matching
-        all_schools = School.query.all()
-        
-        # Create list of school names with their objects
-        school_names = [(school.name, school) for school in all_schools]
-        
-        # Use difflib for fuzzy matching
-        matches = difflib.get_close_matches(
-            query, 
-            [name for name, _ in school_names], 
-            n=limit, 
-            cutoff=0.3
-        )
-        
-        # Get school objects for matches
-        matched_schools = []
-        for match in matches:
-            school_obj = next((school for name, school in school_names if name == match), None)
-            if school_obj:
-                matched_schools.append({
-                    'school_key': school_obj.school_key,
-                    'name': school_obj.name,
-                    'competitiveness_tier': school_obj.competitiveness_tier,
-                    'balloted': school_obj.balloted
-                })
-        
-        # Also include exact substring matches for better results
-        exact_matches = []
-        query_lower = query.lower()
-        for school in all_schools:
-            if query_lower in school.name.lower() and school.name not in matches:
-                exact_matches.append({
-                    'school_key': school.school_key,
-                    'name': school.name,
-                    'competitiveness_tier': school.competitiveness_tier,
-                    'balloted': school.balloted
-                })
-        
-        # Combine and limit results
-        all_matches = matched_schools + exact_matches
-        final_results = all_matches[:limit]
-        
-        return jsonify({'schools': final_results})
+            # Create school key from name - normalize the name
+            school_key = school_name.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('.', '').replace("'", '').replace(',', '').replace('&', 'and')
+            
+            # 1. Direct lookup by school_key first
+            school = School.query.filter_by(school_key=school_key).first()
+            if school:
+                return format_p1_data_from_school(school, school_name)
+            
+            # 2. Try fuzzy matching by name (case-insensitive)
+            school = School.query.filter(School.name.ilike(f'%{school_name}%')).first()
+            if school:
+                return format_p1_data_from_school(school, school_name)
+            
+            # 3. ENHANCED: Aggressive suffix removal for government API names
+            cleaned_search_name = school_name.lower()
+            
+            # Remove common government API suffixes (more comprehensive)
+            suffixes_to_remove = [
+                ' school (primary)',
+                ' primary school', 
+                ' school',
+                ' primary',
+                ' (primary)',
+                ' (pri)',
+                ' pri'
+            ]
+            
+            for suffix in suffixes_to_remove:
+                cleaned_search_name = cleaned_search_name.replace(suffix, '').strip()
+            
+            # Remove extra whitespace and normalize
+            cleaned_search_name = ' '.join(cleaned_search_name.split())
+            
+            if cleaned_search_name != school_name.lower() and len(cleaned_search_name) > 2:
+                # Try exact match with cleaned name
+                school = School.query.filter(School.name.ilike(cleaned_search_name)).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+                
+                # Try partial match with cleaned name
+                school = School.query.filter(School.name.ilike(f'%{cleaned_search_name}%')).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+            
+            # 4. ENHANCED: Better word-by-word matching
+            # Split cleaned name into significant words (3+ chars)
+            search_words = [word.strip() for word in cleaned_search_name.split() if len(word.strip()) >= 3]
+            
+            if search_words:
+                # Try to find schools that contain ALL significant words
+                for school in School.query.all():
+                    school_name_lower = school.name.lower()
+                    if all(word in school_name_lower for word in search_words):
+                        return format_p1_data_from_school(school, school_name)
+                
+                # Try to find schools that contain MOST significant words (80%+ match)
+                if len(search_words) > 1:
+                    min_matches = max(1, int(len(search_words) * 0.8))  # 80% of words must match
+                    for school in School.query.all():
+                        school_name_lower = school.name.lower()
+                        matches = sum(1 for word in search_words if word in school_name_lower)
+                        if matches >= min_matches:
+                            return format_p1_data_from_school(school, school_name)
+            
+            # 5. ENHANCED: Try key-based matching with cleaned name
+            cleaned_key = cleaned_search_name.replace(' ', '_').replace('-', '_').replace('&', 'and')
+            school_words = [word for word in cleaned_key.split('_') if len(word) >= 3]
+            
+            for word in school_words:
+                school = School.query.filter(School.school_key.like(f'%{word}%')).first()
+                if school:
+                    return format_p1_data_from_school(school, school_name)
+            
+            # 6. ENHANCED: Advanced pattern matching for specific cases
+            search_patterns = {
+                # Handle common naming patterns
+                'fairfield': ['fairfield'],
+                'methodist': ['methodist'], 
+                'anderson': ['anderson'],
+                'ang_mo_kio': ['ang_mo_kio', 'ang mo kio'],
+                'ai_tong': ['ai_tong', 'ai tong'],
+                'chij': ['chij'],
+                'nanyang': ['nanyang'],
+                'raffles': ['raffles'],
+                'catholic': ['catholic'],
+                'tao_nan': ['tao_nan', 'tao nan'],
+                'new_town': ['new_town', 'new town'],
+                'anglo_chinese': ['anglo_chinese', 'anglo-chinese'],
+                'st_': ['st_', 'saint'],
+                'geylang': ['geylang'],
+                'queenstown': ['queenstown']
+            }
+            
+            for pattern, variants in search_patterns.items():
+                if any(variant in cleaned_search_name.replace('_', ' ') for variant in variants):
+                    for variant in variants:
+                        school = School.query.filter(School.school_key.like(f'%{variant.replace(" ", "_")}%')).first()
+                        if school:
+                            return format_p1_data_from_school(school, school_name)
+                        school = School.query.filter(School.name.ilike(f'%{variant}%')).first()
+                        if school:
+                            return format_p1_data_from_school(school, school_name)
+            
+            # If no match found, return "no data available"
+            return {
+                'year': year,
+                'school_name': school_name,
+                'data_available': False,
+                'message': 'No P1 data available for this school in our database',
+                'total_schools_in_database': School.query.count(),
+                'suggestion': 'Please check the school name or try searching for similar schools'
+            }
         
     except Exception as e:
-        return jsonify({'error': f'Search failed: {str(e)}'}), 500
+        print(f"Error extracting P1 data for {school_name}: {e}")
+        return {
+            'year': year,
+            'school_name': school_name,
+            'data_available': False,
+            'message': 'Error retrieving P1 data',
+            'error': str(e)
+        }
+
+def format_p1_data_from_school(school, school_name):
+    """Format P1 data from School model for API response"""
+    return {
+        'year': school.year,
+        'phases': {
+            'phase_1': school.get_phase_data('phase_1'),
+            'phase_2a': school.get_phase_data('phase_2a'),
+            'phase_2b': school.get_phase_data('phase_2b'),
+            'phase_2c': school.get_phase_data('phase_2c'),
+            'phase_2c_supp': school.get_phase_data('phase_2c_supp'),
+            'phase_3': school.get_phase_data('phase_3'),
+        },
+        'total_vacancy': school.total_vacancy,
+        'balloted': school.balloted,
+        'school_name': school_name,
+        'competitiveness_score': school.overall_competitiveness_score,
+        'competitiveness_tier': school.competitiveness_tier
+    }
+
+
+
+def enrich_school_with_p1_data(school):
+    """Enrich government school data with P1 data from database using improved fuzzy matching"""
+    try:
+        # Try to find matching school in our database
+        school_name = school.get('name', '')
+        
+        # Use the same enhanced matching logic as extract_p1_data_for_school
+        
+        # 1. Direct exact match first
+        db_school = School.query.filter(School.name.ilike(school_name)).first()
+        if db_school:
+            # Found exact match, use it
+            school['p1_data'] = db_school.to_p1_data_format()
+            return school
+        
+        # 2. ENHANCED: Aggressive suffix removal for government API names
+        cleaned_search_name = school_name.lower()
+        
+        # Remove common government API suffixes (comprehensive)
+        suffixes_to_remove = [
+            ' school (primary)',
+            ' primary school', 
+            ' school',
+            ' primary',
+            ' (primary)',
+            ' (pri)',
+            ' pri'
+        ]
+        
+        for suffix in suffixes_to_remove:
+            cleaned_search_name = cleaned_search_name.replace(suffix, '').strip()
+        
+        # Remove extra whitespace and normalize
+        cleaned_search_name = ' '.join(cleaned_search_name.split())
+        
+        if cleaned_search_name != school_name.lower() and len(cleaned_search_name) > 2:
+            # Try exact match with cleaned name
+            db_school = School.query.filter(School.name.ilike(cleaned_search_name)).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+            
+            # Try partial match with cleaned name
+            db_school = School.query.filter(School.name.ilike(f'%{cleaned_search_name}%')).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+        
+        # 3. ENHANCED: Better word-by-word matching
+        search_words = [word.strip() for word in cleaned_search_name.split() if len(word.strip()) >= 3]
+        
+        if search_words:
+            # Try to find schools that contain ALL significant words
+            for db_school in School.query.all():
+                school_name_lower = db_school.name.lower()
+                if all(word in school_name_lower for word in search_words):
+                    school['p1_data'] = db_school.to_p1_data_format()
+                    return school
+            
+            # Try to find schools that contain MOST significant words (80%+ match)
+            if len(search_words) > 1:
+                min_matches = max(1, int(len(search_words) * 0.8))
+                for db_school in School.query.all():
+                    school_name_lower = db_school.name.lower()
+                    matches = sum(1 for word in search_words if word in school_name_lower)
+                    if matches >= min_matches:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+        
+        # 4. ENHANCED: Key-based matching
+        cleaned_key = cleaned_search_name.replace(' ', '_').replace('-', '_').replace('&', 'and')
+        school_words = [word for word in cleaned_key.split('_') if len(word) >= 3]
+        
+        for word in school_words:
+            db_school = School.query.filter(School.school_key.like(f'%{word}%')).first()
+            if db_school:
+                school['p1_data'] = db_school.to_p1_data_format()
+                return school
+        
+        # 5. ENHANCED: Pattern matching for specific cases
+        search_patterns = {
+            'fairfield': ['fairfield'],
+            'methodist': ['methodist'], 
+            'anderson': ['anderson'],
+            'ang_mo_kio': ['ang_mo_kio', 'ang mo kio'],
+            'ai_tong': ['ai_tong', 'ai tong'],
+            'chij': ['chij'],
+            'nanyang': ['nanyang'],
+            'raffles': ['raffles'],
+            'catholic': ['catholic'],
+            'tao_nan': ['tao_nan', 'tao nan'],
+            'new_town': ['new_town', 'new town'],
+            'anglo_chinese': ['anglo_chinese', 'anglo-chinese'],
+            'st_': ['st_', 'saint'],
+            'geylang': ['geylang'],
+            'queenstown': ['queenstown']
+        }
+        
+        for pattern, variants in search_patterns.items():
+            if any(variant in cleaned_search_name.replace('_', ' ') for variant in variants):
+                for variant in variants:
+                    db_school = School.query.filter(School.school_key.like(f'%{variant.replace(" ", "_")}%')).first()
+                    if db_school:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+                    db_school = School.query.filter(School.name.ilike(f'%{variant}%')).first()
+                    if db_school:
+                        school['p1_data'] = db_school.to_p1_data_format()
+                        return school
+        
+        # If no match found, return no data available
+        school['p1_data'] = {
+            'year': 2024,
+            'school_name': school_name,
+            'data_available': False,
+            'message': 'No P1 data available for this school in our database',
+            'total_schools_in_database': School.query.count()
+        }
+        return school
+            
+    except Exception as e:
+        print(f"Error enriching school {school.get('name', 'Unknown')}: {e}")
+        # Return error state instead of mock data
+        school['p1_data'] = {
+            'year': 2024,
+            'school_name': school.get('name', 'Unknown'),
+            'data_available': False,
+            'message': 'Error retrieving P1 data',
+            'error': str(e)
+        }
+        return school
 
 @schools_bp.route('/search', methods=['POST'])
-def search_schools_by_location():
+def search_schools():
     """Search for schools near a given location"""
     data = request.get_json()
     address = data.get('address', '')
@@ -334,7 +407,10 @@ def search_schools_by_location():
                 school['distance'] = round(distance, 2)
                 school['latitude'] = school_location['latitude']
                 school['longitude'] = school_location['longitude']
-                nearby_schools.append(school)
+                
+                # Enrich with P1 data from database
+                enriched_school = enrich_school_with_p1_data(school)
+                nearby_schools.append(enriched_school)
     
     # Sort by distance
     nearby_schools.sort(key=lambda x: x['distance'])
@@ -345,194 +421,17 @@ def search_schools_by_location():
         'total_found': len(nearby_schools)
     })
 
-@schools_bp.route('/search-detailed', methods=['POST'])
-def search_schools_detailed():
-    """Search schools by name and return detailed info with suggestions"""
-    try:
-        data = request.get_json()
-        query = data.get('query', '').strip()
-        
-        if not query:
-            return jsonify({'schools': []})
-        
-        # Get all schools
-        all_schools = School.query.all()
-        
-        # Filter schools that match the query
-        matching_schools = []
-        query_lower = query.lower()
-        
-        for school in all_schools:
-            school_name_lower = school.name.lower()
-            
-            # Exact match gets highest priority
-            if query_lower == school_name_lower:
-                score = 100
-            # Starts with query gets high priority
-            elif school_name_lower.startswith(query_lower):
-                score = 90
-            # Contains query gets medium priority
-            elif query_lower in school_name_lower:
-                score = 70
-            # Word match gets lower priority
-            elif any(word in school_name_lower for word in query_lower.split()):
-                score = 50
-            else:
-                continue
-                
-            matching_schools.append((score, school))
-        
-        # Sort by score (descending) and limit to top 10
-        matching_schools.sort(key=lambda x: x[0], reverse=True)
-        top_schools = [school for score, school in matching_schools[:10]]
-        
-        school_suggestions = []
-        for school in top_schools:
-            # Parse phase 2C data for basic info
-            phase_2c_data = {}
-            if school.phase_2c_data:
-                try:
-                    phase_2c_data = json.loads(school.phase_2c_data)
-                except:
-                    phase_2c_data = {}
-            
-            school_info = {
-                'school_key': school.school_key,
-                'name': school.name,
-                'competitiveness_tier': school.competitiveness_tier,
-                'balloted': school.balloted,
-                'phase_2c_vacancies': phase_2c_data.get('vacancies', 0),
-                'phase_2c_applicants': phase_2c_data.get('applicants', 0)
-            }
-            school_suggestions.append(school_info)
-        
-        return jsonify({'schools': school_suggestions})
-        
-    except Exception as e:
-        return jsonify({'error': f'Search failed: {str(e)}'}), 500
+@schools_bp.route('/school/<school_name>/p1-data', methods=['GET'])
+def get_school_p1_data(school_name):
+    """Get detailed P1 data for a specific school"""
+    year = request.args.get('year', 2024, type=int)
+    
+    p1_data = extract_p1_data_for_school(school_name, year)
+    if not p1_data:
+        return jsonify({'error': 'P1 data not found'}), 404
+    
+    return jsonify(p1_data)
 
-# SCHOOL DETAIL APIs
-@schools_bp.route('/<school_key>', methods=['GET'])
-def get_school_detail(school_key):
-    """Get detailed information for a specific school"""
-    try:
-        school = School.query.filter_by(school_key=school_key).first()
-        
-        if not school:
-            return jsonify({'error': 'School not found'}), 404
-        
-        # Parse all phase data
-        phase_data = {}
-        for phase in ['phase_1', 'phase_2a', 'phase_2b', 'phase_2c', 'phase_2c_supp']:
-            phase_field = f"{phase}_data"
-            if hasattr(school, phase_field):
-                raw_data = getattr(school, phase_field)
-                if raw_data:
-                    try:
-                        phase_data[phase] = json.loads(raw_data)
-                    except:
-                        phase_data[phase] = {}
-                else:
-                    phase_data[phase] = {}
-        
-        # Get competitiveness metrics
-        comp_metrics = {}
-        if school.competitiveness_metrics:
-            try:
-                comp_metrics = json.loads(school.competitiveness_metrics)
-            except:
-                comp_metrics = {}
-        
-        # Get contact info
-        contact_info = find_school_contact_info(school.name)
-        
-        school_detail = {
-            'school_key': school.school_key,
-            'name': school.name,
-            'total_vacancy': school.total_vacancy,
-            'balloted': school.balloted,
-            'year': school.year,
-            'competitiveness_tier': school.competitiveness_tier,
-            'overall_competitiveness_score': school.overall_competitiveness_score,
-            'phases': phase_data,
-            'competitiveness_metrics': comp_metrics,
-            'contact_info': contact_info,
-            'analysis': {
-                'most_competitive_phase': school.get_most_competitive_phase(),
-                'overall_success_rate': school.calculate_overall_success_rate(),
-                'strategy_recommendation': school.get_strategy_recommendation()
-            }
-        }
-        
-        return jsonify(school_detail)
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to get school details: {str(e)}'}), 500
-
-@schools_bp.route('/detail', methods=['POST'])
-def get_school_detail_by_key():
-    """Get detailed school information including all phases and analysis"""
-    try:
-        data = request.get_json()
-        school_key = data.get('school_key')
-        
-        if not school_key:
-            return jsonify({'error': 'School key is required'}), 400
-        
-        school = School.query.filter_by(school_key=school_key).first()
-        
-        if not school:
-            return jsonify({'error': 'School not found'}), 404
-        
-        # Parse all phase data
-        phases = {}
-        for phase_name in ['phase_1', 'phase_2a', 'phase_2b', 'phase_2c', 'phase_2c_supp']:
-            phase_data_field = f"{phase_name}_data"
-            if hasattr(school, phase_data_field):
-                raw_data = getattr(school, phase_data_field)
-                if raw_data:
-                    try:
-                        phases[phase_name] = json.loads(raw_data)
-                    except:
-                        phases[phase_name] = {}
-                else:
-                    phases[phase_name] = {}
-        
-        # Parse competitiveness metrics
-        comp_metrics = {}
-        if school.competitiveness_metrics:
-            try:
-                comp_metrics = json.loads(school.competitiveness_metrics)
-            except:
-                comp_metrics = {}
-        
-        # Try to match school with contact info from CSV data
-        contact_info = find_school_contact_info(school.name)
-        
-        school_detail = {
-            'school_key': school.school_key,
-            'name': school.name,
-            'total_vacancy': school.total_vacancy,
-            'balloted': school.balloted,
-            'year': school.year,
-            'competitiveness_tier': school.competitiveness_tier,
-            'overall_competitiveness_score': school.overall_competitiveness_score,
-            'phases': phases,
-            'competitiveness_metrics': comp_metrics,
-            'contact_info': contact_info,
-            'analysis': {
-                'most_competitive_phase': school.get_most_competitive_phase(),
-                'overall_success_rate': school.calculate_overall_success_rate(),
-                'strategy_recommendation': school.get_strategy_recommendation()
-            }
-        }
-        
-        return jsonify(school_detail)
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to get school details: {str(e)}'}), 500
-
-# UTILITY APIs
 @schools_bp.route('/all', methods=['GET'])
 def get_all_schools():
     """Get all primary schools"""
@@ -553,4 +452,352 @@ def geocode():
         return jsonify({'error': 'Could not geocode address'}), 400
     
     return jsonify(location)
+
+@schools_bp.route('/database', methods=['GET'])
+def get_schools_from_database():
+    """Get all schools from database - useful for debugging"""
+    try:
+        schools = School.query.all()
+        schools_data = []
+        for school in schools:
+            school_dict = school.to_dict()
+            schools_data.append(school_dict)
+        
+        return jsonify({
+            'schools': schools_data,
+            'total_count': len(schools_data)
+        })
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+@schools_bp.route('/database/<school_key>', methods=['GET'])
+def get_school_by_key(school_key):
+    """Get a specific school by its key from database"""
+    try:
+        school = School.query.filter_by(school_key=school_key).first()
+        if not school:
+            return jsonify({'error': 'School not found'}), 404
+        
+        return jsonify(school.to_dict())
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+@schools_bp.route('/search-by-name', methods=['GET'])
+def search_schools_by_name():
+    """Search schools by name with autocomplete suggestions"""
+    query = request.args.get('query', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    
+    if not query:
+        return jsonify({'suggestions': [], 'total': 0})
+    
+    if len(query) < 2:
+        return jsonify({'suggestions': [], 'total': 0, 'message': 'Query too short, minimum 2 characters'})
+    
+    try:
+        # Search in database first (most relevant)
+        db_suggestions = []
+        db_schools = School.query.filter(School.name.ilike(f'%{query}%')).limit(limit).all()
+        
+        for school in db_schools:
+            db_suggestions.append({
+                'id': school.school_key,
+                'name': school.name,
+                'source': 'database',
+                'has_p1_data': True,
+                'year': school.year,
+                'competitiveness_tier': school.competitiveness_tier,
+                'total_vacancy': school.total_vacancy,
+                'balloted': school.balloted
+            })
+        
+        # If we have enough suggestions from database, return them
+        if len(db_suggestions) >= limit:
+            return jsonify({
+                'suggestions': db_suggestions[:limit],
+                'total': len(db_suggestions),
+                'query': query
+            })
+        
+        # Otherwise, supplement with government API data
+        try:
+            gov_schools = get_schools_data()
+            gov_suggestions = []
+            
+            query_lower = query.lower()
+            for school in gov_schools:
+                school_name = school.get('name', '')
+                if query_lower in school_name.lower():
+                    # Check if we already have this school from database
+                    already_included = any(db_school['name'].lower() == school_name.lower() 
+                                         for db_school in db_suggestions)
+                    
+                    if not already_included:
+                        gov_suggestions.append({
+                            'id': school_name.lower().replace(' ', '_').replace('-', '_'),
+                            'name': school_name,
+                            'source': 'government',
+                            'has_p1_data': False,
+                            'address': school.get('address', ''),
+                            'phone': school.get('phone', ''),
+                            'email': school.get('email', '')
+                        })
+            
+            # Sort government suggestions by relevance (exact match first, then starts with, then contains)
+            def sort_relevance(item):
+                name_lower = item['name'].lower()
+                if name_lower == query_lower:
+                    return 0  # Exact match
+                elif name_lower.startswith(query_lower):
+                    return 1  # Starts with query
+                else:
+                    return 2  # Contains query
+            
+            gov_suggestions.sort(key=sort_relevance)
+            
+            # Combine results (database first, then government)
+            all_suggestions = db_suggestions + gov_suggestions
+            
+            return jsonify({
+                'suggestions': all_suggestions[:limit],
+                'total': len(all_suggestions),
+                'query': query,
+                'database_matches': len(db_suggestions),
+                'government_matches': len(gov_suggestions)
+            })
+            
+        except Exception as e:
+            print(f"Error fetching government data: {e}")
+            # Return only database results if government API fails
+            return jsonify({
+                'suggestions': db_suggestions,
+                'total': len(db_suggestions),
+                'query': query,
+                'note': 'Limited to database results due to external API error'
+            })
+    
+    except Exception as e:
+        return jsonify({'error': f'Search error: {str(e)}'}), 500
+
+@schools_bp.route('/school-detail/<path:school_name>', methods=['GET'])
+def get_school_detail(school_name):
+    """Get comprehensive school details including P1 data, contact info, and analysis"""
+    try:
+        # Decode URL-encoded school name
+        school_name = school_name.replace('%20', ' ')
+        
+        # Try to find in database first
+        db_school = School.query.filter(School.name.ilike(school_name)).first()
+        
+        if db_school:
+            # Found in database - return comprehensive data
+            school_detail = {
+                'basic_info': {
+                    'name': db_school.name,
+                    'school_key': db_school.school_key,
+                    'year': db_school.year,
+                    'source': 'database',
+                    'has_comprehensive_data': True
+                },
+                'p1_data': {
+                    'total_vacancy': db_school.total_vacancy,
+                    'balloted': db_school.balloted,
+                    'competitiveness_score': db_school.overall_competitiveness_score,
+                    'competitiveness_tier': db_school.competitiveness_tier,
+                    'phases': {
+                        'phase_1': db_school.get_phase_data('phase_1'),
+                        'phase_2a': db_school.get_phase_data('phase_2a'),
+                        'phase_2b': db_school.get_phase_data('phase_2b'),
+                        'phase_2c': db_school.get_phase_data('phase_2c'),
+                        'phase_2c_supp': db_school.get_phase_data('phase_2c_supp'),
+                        'phase_3': db_school.get_phase_data('phase_3'),
+                    }
+                },
+                'analysis': {
+                    'overall_success_rate': db_school.calculate_overall_success_rate(),
+                    'most_competitive_phase': db_school.get_most_competitive_phase(),
+                    'recommendation': db_school.get_strategy_recommendation()
+                }
+            }
+            
+            # Try to get additional contact info from government API
+            try:
+                gov_schools = get_schools_data()
+                db_school_name_lower = db_school.name.lower()
+                
+                # First try exact match
+                for gov_school in gov_schools:
+                    if gov_school['name'].lower() == db_school_name_lower:
+                        school_detail['contact_info'] = {
+                            'address': gov_school.get('address', 'Not available'),
+                            'postal_code': gov_school.get('postal_code', 'Not available'),
+                            'phone': gov_school.get('phone', 'Not available'),
+                            'email': gov_school.get('email', 'Not available'),
+                            'website': gov_school.get('website', 'Not available'),
+                            'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                            'bus_desc': gov_school.get('bus_desc', 'Not available')
+                        }
+                        break
+                else:
+                    # If no exact match, try enhanced fuzzy matching
+                    db_words = [word for word in db_school_name_lower.replace('(', '').replace(')', '').split() 
+                               if len(word) >= 3 and word not in ['school', 'primary']]
+                    
+                    if len(db_words) >= 2:  # Only try fuzzy match if we have significant words
+                        for gov_school in gov_schools:
+                            gov_name_lower = gov_school['name'].lower()
+                            # Require at least 80% of significant words to match
+                            matches = sum(1 for word in db_words if word in gov_name_lower)
+                            match_ratio = matches / len(db_words)
+                            
+                            if match_ratio >= 0.8:  # 80% match required
+                                school_detail['contact_info'] = {
+                                    'address': gov_school.get('address', 'Not available'),
+                                    'postal_code': gov_school.get('postal_code', 'Not available'),
+                                    'phone': gov_school.get('phone', 'Not available'),
+                                    'email': gov_school.get('email', 'Not available'),
+                                    'website': gov_school.get('website', 'Not available'),
+                                    'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                                    'bus_desc': gov_school.get('bus_desc', 'Not available')
+                                }
+                                break
+                        else:
+                            # No good match found
+                            school_detail['contact_info'] = {
+                                'message': 'Contact information not available - no matching school found in government database'
+                            }
+                    else:
+                        school_detail['contact_info'] = {
+                            'message': 'Contact information not available - insufficient data for matching'
+                        }
+            except:
+                school_detail['contact_info'] = {
+                    'message': 'Contact information could not be retrieved'
+                }
+                
+            return jsonify(school_detail)
+        
+        else:
+            # Not in database - try to find in government API
+            try:
+                gov_schools = get_schools_data()
+                for gov_school in gov_schools:
+                    if gov_school['name'].lower() == school_name.lower():
+                        school_detail = {
+                            'basic_info': {
+                                'name': gov_school['name'],
+                                'source': 'government',
+                                'has_comprehensive_data': False
+                            },
+                            'contact_info': {
+                                'address': gov_school.get('address', 'Not available'),
+                                'postal_code': gov_school.get('postal_code', 'Not available'),
+                                'phone': gov_school.get('phone', 'Not available'),
+                                'email': gov_school.get('email', 'Not available'),
+                                'website': gov_school.get('website', 'Not available'),
+                                'mrt_desc': gov_school.get('mrt_desc', 'Not available'),
+                                'bus_desc': gov_school.get('bus_desc', 'Not available')
+                            },
+                            'p1_data': {
+                                'message': 'P1 registration data not available for this school',
+                                'suggestion': 'This school may not participate in the standard P1 registration process, or data may not be available yet.'
+                            }
+                        }
+                        return jsonify(school_detail)
+                
+                # School not found anywhere
+                return jsonify({
+                    'error': 'School not found',
+                    'message': f'No school found with name: {school_name}',
+                    'suggestion': 'Please check the school name spelling or try searching with partial name'
+                }), 404
+                
+            except Exception as e:
+                return jsonify({
+                    'error': 'Error retrieving school data',
+                    'message': str(e)
+                }), 500
+    
+    except Exception as e:
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@schools_bp.route('/rankings', methods=['GET'])
+def get_school_rankings():
+    """Get school rankings based on competitiveness"""
+    try:
+        # Get query parameters
+        limit = request.args.get('limit', 50, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        competitiveness_filter = request.args.get('competitiveness')  # 'High', 'Medium', 'Low'
+        balloted_filter = request.args.get('balloted')  # 'true', 'false'
+        
+        # Base query
+        query = School.query
+        
+        # Apply filters
+        if competitiveness_filter:
+            query = query.filter(School.competitiveness_tier == competitiveness_filter)
+        
+        if balloted_filter is not None:
+            balloted_bool = balloted_filter.lower() == 'true'
+            query = query.filter(School.balloted == balloted_bool)
+        
+        # Order by competitiveness score (descending)
+        query = query.order_by(School.overall_competitiveness_score.desc())
+        
+        # Get total count for pagination
+        total_count = query.count()
+        
+        # Apply pagination
+        schools = query.offset(offset).limit(limit).all()
+        
+        # Format results
+        rankings = []
+        for i, school in enumerate(schools):
+            # Get Phase 2C data
+            phase_2c_data = school.get_phase_data('phase_2c')
+            vacancies_2c = phase_2c_data.get('vacancies', 0) if phase_2c_data else 0
+            applicants_2c = phase_2c_data.get('applicants', 0) if phase_2c_data else 0
+            
+            # Calculate ratio (applicants per vacancy)
+            if vacancies_2c > 0:
+                ratio_2c = applicants_2c / vacancies_2c
+            elif applicants_2c > 0:
+                ratio_2c = float('inf')  # Infinity when no vacancies but have applicants
+            else:
+                ratio_2c = 0  # No competition
+            
+            school_data = {
+                'rank': offset + i + 1,
+                'name': school.name,
+                'competitiveness_tier': school.competitiveness_tier,
+                'balloted': school.balloted,
+                'total_vacancy': school.total_vacancy,
+                'year': school.year,
+                'vacancies_2c': vacancies_2c,
+                'applicants_2c': applicants_2c,
+                'ratio_2c': ratio_2c
+            }
+            rankings.append(school_data)
+        
+        return jsonify({
+            'rankings': rankings,
+            'pagination': {
+                'total': total_count,
+                'limit': limit,
+                'offset': offset,
+                'has_more': offset + limit < total_count
+            },
+            'filters_applied': {
+                'competitiveness': competitiveness_filter,
+                'balloted': balloted_filter
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Error retrieving rankings',
+            'message': str(e)
+        }), 500
 

@@ -90,7 +90,9 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
         case 'distance':
           return a.distance - b.distance
         case 'name':
-          return a.name.localeCompare(b.name)
+          const aName = a && a.name ? a.name : '';
+          const bName = b && b.name ? b.name : '';
+          return aName.localeCompare(bName)
         case 'competitiveness':
           const aLevel = getCompetitivenessLevel(a)
           const bLevel = getCompetitivenessLevel(b)
@@ -105,7 +107,8 @@ const SchoolResults = ({ results, userLocation, selectedSchools, onSchoolSelect,
   }
 
   const isSchoolSelected = (school) => {
-    return selectedSchools.some(s => s.name === school.name)
+    if (!school || !school.name) return false;
+    return selectedSchools.some(s => s && s.name === school.name)
   }
 
   const filteredSchools = getSortedSchools()
